@@ -18,18 +18,31 @@ bigBlind
 smallBlind
 currentPlayer
 pot
-players
+players = []
 remainingPlayers
 tableCards
 currentBet
 deck
+startingCash
 
 def main():
-    pass
+    startingCash = 10000
+    NewRound()
+
+
 
 def NewRound():
+    #henter en ny kortstokk og starter en ny runde
     deck = cards.gen_52_shuffled_cards
     remaningPlayers = players
+    #Trekker kort til alle spillerene
+    for p in players:
+        p.cards = DrawCards(2)
+
+#Genererer n antall spillere
+def GeneratePlayers(n):
+    players.append()
+
 
 def DrawCards(n):
     c = []
@@ -46,6 +59,10 @@ class Player:
     self.cash
     self.bet
 
+    def __init__(self):
+        self.cards = []
+        self.cash = startingCash
+        self.bet = 0
     def Fold():
         #Kaster spilleren ut av remainingPlayers
         pass
