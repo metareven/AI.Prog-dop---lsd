@@ -14,16 +14,16 @@ import random
 import math
 import cards
 
-bigBlind
-smallBlind
-currentPlayer
-pot
+bigBlind = None
+smallBlind= None
+currentPlayer = None
+pot = 0
 players = []
-remainingPlayers
-tableCards
-currentBet
-deck
-startingCash
+remainingPlayers = []
+tableCards = []
+currentBet = []
+deck = []
+startingCash = 0
 
 #testkommentar
 
@@ -43,7 +43,7 @@ def NewRound():
 
 #Genererer n antall spillere
 def GeneratePlayers(n):
-    players.append()
+    players.append(Player())
 
 
 def DrawCards(n):
@@ -57,14 +57,15 @@ def DrawCards(n):
 
 
 class Player:
-    self.cards
-    self.cash
-    self.bet
+    cards = []
+    cash = 0
+    bet = 0
 
     def __init__(self):
         self.cards = []
         self.cash = startingCash
         self.bet = 0
+
     def Fold():
         #Kaster spilleren ut av remainingPlayers
         pass
