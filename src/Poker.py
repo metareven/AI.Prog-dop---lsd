@@ -25,6 +25,8 @@ currentBet
 deck
 startingCash
 
+#testkommentar
+
 def main():
     startingCash = 10000
     NewRound()
