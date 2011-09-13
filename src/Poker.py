@@ -24,6 +24,8 @@ tableCards
 currentBet
 deck
 
+#testkommentar
+
 def main():
     pass
 
