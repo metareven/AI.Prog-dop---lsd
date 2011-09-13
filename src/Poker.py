@@ -21,7 +21,7 @@ pot = 0
 players = []
 remainingPlayers = []
 tableCards = []
-currentBet = []
+currentBet = 0
 deck = []
 startingCash = 0
 
@@ -68,16 +68,27 @@ class Player:
 
     def Fold():
         #Kaster spilleren ut av remainingPlayers
-        pass
+        remainingPlayers.remove(self)
 
 
-    def Raise(bet):
+    def Raise(b):
         #?ker potten og minker cash med bet. Setter ogs? currentBet lik bet
-        pass
+
+        #setter temp til verdien som spilleren m? legge til for ? raise med b
+        temp = b + (currentBet - bet)
+        bet+=temp
+        cash-=temp
+        currentBet = temp
 
     def Call():
         #?ker bet med s? mye som trengs for at bet skal bli lik currentBet
-        pass
+        cash -= currentBet - bet
+        bet = currentBet
+
+
+
+
+
 
     def Assess():
         #Finner ut om spilleren skal Raise, Calle eller Folde
