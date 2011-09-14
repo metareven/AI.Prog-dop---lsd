@@ -36,10 +36,10 @@ def main():
 
 
 def NewRound():
-    #henter en ny kortstokk og starter en ny runde
+    # Henter en ny kortstokk og starter en ny runde
     deck = cards.gen_52_shuffled_cards
     remaningPlayers = players
-    #Trekker kort til alle spillerene
+    # Trekker kort til alle spillerene
     for p in players:
         p.cards = DrawCards(2)
     # Forste runde med vedding
@@ -47,6 +47,18 @@ def NewRound():
     # Trekker flop-kort
     tableCards = DrawCards(3)
     # Ny runde med vedding
+    FlopBet()
+    # Trekker turn-kort
+    flop = DrawCards(1)
+    tableCards.append(flop[0])
+    # Ny runde med vedding
+    TurnBet()
+    # Trekker river-kort
+    river = DrawCards(1)
+    tableCards.append(river[0])
+    # Siste runde med vedding
+    RiverBet()
+    # Showdown
     
 
 def InitialBet():
@@ -82,6 +94,12 @@ def FlopBet():
             p.Call()
         else:
             p.Fold()
+
+def TurBet():
+    break
+
+def RiverBet():
+    break
     
 
 
