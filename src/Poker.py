@@ -13,6 +13,7 @@
 import random
 import math
 import cards
+import random
 
 bigBlind = None
 smallBlind= None
@@ -24,8 +25,9 @@ tableCards = []
 currentBet = 0
 deck = []
 startingCash = 0
+raiseValue = 100 # Verdien det skal okes med nar man raiser
 
-#testkommentar
+
 
 def main():
     startingCash = 10000
@@ -40,6 +42,49 @@ def NewRound():
     #Trekker kort til alle spillerene
     for p in players:
         p.cards = DrawCards(2)
+    # Forste runde med vedding
+    InitialBet()
+    # Trekker flop-kort
+    tableCards = DrawCards(3)
+    # Ny runde med vedding
+    
+
+def InitialBet():
+    # Starter med at smallBlind og bigBlind må vedde
+    smallBlind.Raise(raiseValue)
+    bigBlind.Call()
+    bigBlind.Raise(raiseValue)
+    # Hver spiller må så ta fold, call eller raise
+    # Det er her helt tilfeldig hva de gjør
+    for p in players:
+        if p != smallBlind and p != bigBlind:
+            i = random.randint(0,2)
+            if i == 0:
+                p.Fold()
+            elif i == 1:
+                p.Raise(raiseValue)
+            else:
+                p.Call()
+
+def FlopBet():
+    # Her velger man handling basert på power rating
+    # Har man power rating på under 3 velger man Fold
+    # Har man power rating mellom 3 og 4 velger man Call
+    # Har man power rating på over 4 velger man Raise
+    for p in players:
+        hand = p.cards
+        for card in tableCards:
+            hand.append(card)
+        power = cards.calc_cards_power(hand)[0]
+        if power > 4:
+            p.Raise(raiseValue)
+        elif power > 2:
+            p.Call()
+        else:
+            p.Fold()
+    
+
+
 
 #Genererer n antall spillere
 def GeneratePlayers(n):
