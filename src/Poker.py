@@ -14,8 +14,8 @@ import random
 import math
 import cards
 
-bigBlind = None
-smallBlind= None
+bigBlind = 1
+smallBlind= 0
 currentPlayer = None
 pot = 0
 players = []
@@ -24,6 +24,8 @@ tableCards = []
 currentBet = 0
 deck = []
 startingCash = 0
+standardRaise = 100
+phase = 0
 
 #testkommentar
 
@@ -35,11 +37,42 @@ def main():
 
 def NewRound():
     #henter en ny kortstokk og starter en ny runde
+    Phase = 0
     deck = cards.gen_52_shuffled_cards
     remaningPlayers = players
     #Trekker kort til alle spillerene
     for p in players:
         p.cards = DrawCards(2)
+
+def BettingRound():
+    prePot = pot
+
+    for p in remaningPlayers:
+        p.Assess()
+
+    #checking if anyone has raised this round, and if they have,
+    #then we start a a new betting round
+    while(pot > prePot + (standardRaise * len(remainingPlayers))):
+        prePot = pot
+        for p in remaningPlayers:
+            p.Assess()
+    NewPhase()
+
+#starts the next phase, i.e flop, turn, river
+def NewPhase():
+    phase += 1
+    if(len(tableCards) == 0):
+        tableCards.append(DrawCards(3))
+    else:
+        tableCards.append(DrawCards(1))
+
+
+
+#Calculate if we have a winner and starts a new round if we have
+def FindWinner():
+    pass
+
+
 
 #Genererer n antall spillere
 def GeneratePlayers(n):
@@ -79,10 +112,13 @@ class Player:
         bet+=temp
         cash-=temp
         currentBet = temp
+        pot += b
 
     def Call():
         #?ker bet med s? mye som trengs for at bet skal bli lik currentBet
-        cash -= currentBet - bet
+        diff = currentBet - bet
+        pot += diff
+        cash -= diff
         bet = currentBet
 
 
@@ -92,7 +128,16 @@ class Player:
 
     def Assess():
         #Finner ut om spilleren skal Raise, Calle eller Folde
-        pass
+        power = calc_cards_power(cards)
+        rand = random()
+        diff = currentBet - bet
+        willing = power[0] + (power[1]/14) - rand - (diff/pot)
+        if(willing > 1.5):
+            raise(standardRaise)
+        elif (willing > 0.5):
+            call()
+        else:
+            fold()
 
 
 
