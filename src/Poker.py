@@ -13,9 +13,10 @@
 import random
 import math
 import cards
+import random
 
-bigBlind = 1
-smallBlind= 0
+bigBlind = None
+smallBlind= None
 currentPlayer = None
 pot = 0
 players = []
@@ -24,10 +25,9 @@ tableCards = []
 currentBet = 0
 deck = []
 startingCash = 0
-standardRaise = 100
-phase = 0
+raiseValue = 100 # Verdien det skal okes med nar man raiser
 
-#testkommentar
+
 
 def main():
     startingCash = 10000
@@ -36,41 +36,71 @@ def main():
 
 
 def NewRound():
-    #henter en ny kortstokk og starter en ny runde
-    Phase = 0
+    # Henter en ny kortstokk og starter en ny runde
     deck = cards.gen_52_shuffled_cards
     remaningPlayers = players
-    #Trekker kort til alle spillerene
+    # Trekker kort til alle spillerene
     for p in players:
         p.cards = DrawCards(2)
+    # Forste runde med vedding
+    InitialBet()
+    # Trekker flop-kort
+    tableCards = DrawCards(3)
+    # Ny runde med vedding
+    FlopBet()
+    # Trekker turn-kort
+    flop = DrawCards(1)
+    tableCards.append(flop[0])
+    # Ny runde med vedding
+    TurnBet()
+    # Trekker river-kort
+    river = DrawCards(1)
+    tableCards.append(river[0])
+    # Siste runde med vedding
+    RiverBet()
+    # Showdown
+    
 
-def BettingRound():
-    prePot = pot
+def InitialBet():
+    # Starter med at smallBlind og bigBlind må vedde
+    smallBlind.Raise(raiseValue)
+    bigBlind.Call()
+    bigBlind.Raise(raiseValue)
+    # Hver spiller må så ta fold, call eller raise
+    # Det er her helt tilfeldig hva de gjør
+    for p in players:
+        if p != smallBlind and p != bigBlind:
+            i = random.randint(0,2)
+            if i == 0:
+                p.Fold()
+            elif i == 1:
+                p.Raise(raiseValue)
+            else:
+                p.Call()
 
-    for p in remaningPlayers:
-        p.Assess()
+def FlopBet():
+    # Her velger man handling basert på power rating
+    # Har man power rating på under 3 velger man Fold
+    # Har man power rating mellom 3 og 4 velger man Call
+    # Har man power rating på over 4 velger man Raise
+    for p in players:
+        hand = p.cards
+        for card in tableCards:
+            hand.append(card)
+        power = cards.calc_cards_power(hand)[0]
+        if power > 4:
+            p.Raise(raiseValue)
+        elif power > 2:
+            p.Call()
+        else:
+            p.Fold()
 
-    #checking if anyone has raised this round, and if they have,
-    #then we start a a new betting round
-    while(pot > prePot + (standardRaise * len(remainingPlayers))):
-        prePot = pot
-        for p in remaningPlayers:
-            p.Assess()
-    NewPhase()
+def TurBet():
+    break
 
-#starts the next phase, i.e flop, turn, river
-def NewPhase():
-    phase += 1
-    if(len(tableCards) == 0):
-        tableCards.append(DrawCards(3))
-    else:
-        tableCards.append(DrawCards(1))
-
-
-
-#Calculate if we have a winner and starts a new round if we have
-def FindWinner():
-    pass
+def RiverBet():
+    break
+    
 
 
 
@@ -112,13 +142,10 @@ class Player:
         bet+=temp
         cash-=temp
         currentBet = temp
-        pot += b
 
     def Call():
         #?ker bet med s? mye som trengs for at bet skal bli lik currentBet
-        diff = currentBet - bet
-        pot += diff
-        cash -= diff
+        cash -= currentBet - bet
         bet = currentBet
 
 
@@ -128,16 +155,7 @@ class Player:
 
     def Assess():
         #Finner ut om spilleren skal Raise, Calle eller Folde
-        power = calc_cards_power(cards)
-        rand = random()
-        diff = currentBet - bet
-        willing = power[0] + (power[1]/14) - rand - (diff/pot)
-        if(willing > 1.5):
-            raise(standardRaise)
-        elif (willing > 0.5):
-            call()
-        else:
-            fold()
+        pass
 
 
 
