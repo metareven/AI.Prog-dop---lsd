@@ -49,6 +49,7 @@ def NewRound():
     #velger ny big blind og small blind
     global bigBlind
     global smallBlind
+    global players
     bigBlind = players[0]
     smallBlind = players[1]
     deck = cards.gen_52_shuffled_cards
@@ -73,6 +74,7 @@ def NewRound():
     # Siste runde med vedding
     RiverBet()
     # Showdown
+    players.rotate(1)
 
 
 def InitialBet():
