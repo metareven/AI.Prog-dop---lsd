@@ -25,18 +25,35 @@ tableCards = []
 currentBet = 0
 deck = []
 startingCash = 0
+blindNumber = 1 #dette er big blind
 raiseValue = 100 # Verdien det skal okes med nar man raiser
 
 
 
-def main():
+def main(number):
+    print("starting new game with " , number , " players" )
+    global blindNumber, startingCash
+    blindNumber = 0
     startingCash = 10000
+    GeneratePlayers(number) #lager spillere
     NewRound()
 
+def GeneratePlayers(n):
+    print ("generating" , n , "players") #hmm dette skjer ikke
+    for i in range(n):
+        players.append(Player())
 
 
 def NewRound():
     # Henter en ny kortstokk og starter en ny runde
+    #velger ny big blind og small blind
+    global blindNumber
+    global bigBlind
+    global smallBlind
+    blindNumber += 1
+    bigBlind = players[blindNumber]
+    smallBlind = players[blindNumber -1]
+
     deck = cards.gen_52_shuffled_cards
     remaningPlayers = players
     # Trekker kort til alle spillerene
@@ -96,10 +113,10 @@ def FlopBet():
             p.Fold()
 
 def TurBet():
-    break
+    pass
 
 def RiverBet():
-    break
+    pass
 
 
 
@@ -162,4 +179,4 @@ class Player:
 
 
 if __name__ == '__main__':
-    main()
+    main(4)
