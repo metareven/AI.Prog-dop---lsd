@@ -14,18 +14,18 @@ import random
 import math
 import cards
 import random
+from collections import deque
 
 bigBlind = None
 smallBlind= None
 currentPlayer = None
 pot = 0
-players = []
+players = deque()
 remainingPlayers = []
 tableCards = []
 currentBet = 0
 deck = []
 startingCash = 0
-blindNumber = 1 #dette er big blind
 raiseValue = 100 # Verdien det skal okes med nar man raiser
 
 
@@ -47,13 +47,10 @@ def GeneratePlayers(n):
 def NewRound():
     # Henter en ny kortstokk og starter en ny runde
     #velger ny big blind og small blind
-    global blindNumber
     global bigBlind
     global smallBlind
-    blindNumber += 1
-    bigBlind = players[blindNumber]
-    smallBlind = players[blindNumber -1]
-
+    bigBlind = players[0]
+    smallBlind = players[1]
     deck = cards.gen_52_shuffled_cards
     remaningPlayers = players
     # Trekker kort til alle spillerene
@@ -85,22 +82,26 @@ def InitialBet():
     bigBlind.Raise(raiseValue)
     # Hver spiller m? s? ta fold, call eller raise
     # Det er her helt tilfeldig hva de gj?r
-    for p in players:
-        if p != smallBlind and p != bigBlind:
-            i = random.randint(0,2)
-            if i == 0:
-                p.Fold()
-            elif i == 1:
-                p.Raise(raiseValue)
-            else:
-                p.Call()
+    firstRound = True # Brukes for aa soerge for at smallBlind og bigBlind ikke vedder 2 ganger den foerste runden
+    while remainingPlayers:
+        for p in remainingPlayers:
+            if (p != smallBlind or not firstRound) and (p != bigBlind or not firstRound):
+                i = random.randint(0,2)
+                if i == 0:
+                    p.Fold()
+                elif i == 1:
+                    p.Raise(raiseValue)
+                else:
+                    p.Call()
+        if firstRound:
+            firstRound = False
 
 def FlopBet():
     # Her velger man handling basert p? power rating
     # Har man power rating p? under 3 velger man Fold
     # Har man power rating mellom 3 og 4 velger man Call
     # Har man power rating p? over 4 velger man Raise
-    for p in players:
+    for p in remainingPlayers:
         hand = p.cards
         for card in tableCards:
             hand.append(card)
