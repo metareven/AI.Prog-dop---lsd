@@ -119,13 +119,6 @@ def RiverBet():
     pass
 
 
-
-
-#Genererer n antall spillere
-def GeneratePlayers(n):
-    players.append(Player())
-
-
 def DrawCards(n):
     c = []
     for i in range(n):
