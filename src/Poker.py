@@ -59,15 +59,15 @@ def NewRound():
     # Siste runde med vedding
     RiverBet()
     # Showdown
-    
+
 
 def InitialBet():
-    # Starter med at smallBlind og bigBlind må vedde
+    # Starter med at smallBlind og bigBlind m? vedde
     smallBlind.Raise(raiseValue)
     bigBlind.Call()
     bigBlind.Raise(raiseValue)
-    # Hver spiller må så ta fold, call eller raise
-    # Det er her helt tilfeldig hva de gjør
+    # Hver spiller m? s? ta fold, call eller raise
+    # Det er her helt tilfeldig hva de gj?r
     for p in players:
         if p != smallBlind and p != bigBlind:
             i = random.randint(0,2)
@@ -79,10 +79,10 @@ def InitialBet():
                 p.Call()
 
 def FlopBet():
-    # Her velger man handling basert på power rating
-    # Har man power rating på under 3 velger man Fold
+    # Her velger man handling basert p? power rating
+    # Har man power rating p? under 3 velger man Fold
     # Har man power rating mellom 3 og 4 velger man Call
-    # Har man power rating på over 4 velger man Raise
+    # Har man power rating p? over 4 velger man Raise
     for p in players:
         hand = p.cards
         for card in tableCards:
@@ -100,7 +100,7 @@ def TurBet():
 
 def RiverBet():
     break
-    
+
 
 
 
@@ -142,10 +142,12 @@ class Player:
         bet+=temp
         cash-=temp
         currentBet = temp
+        pot += b
 
     def Call():
         #?ker bet med s? mye som trengs for at bet skal bli lik currentBet
         cash -= currentBet - bet
+        pot += currentBet -bet
         bet = currentBet
 
 
@@ -153,8 +155,8 @@ class Player:
 
 
 
+    #Finner ut om spilleren skal Raise, Calle eller Folde
     def Assess():
-        #Finner ut om spilleren skal Raise, Calle eller Folde
         pass
 
 
