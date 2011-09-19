@@ -40,10 +40,10 @@ def copy_cards(cards): return [copy_card(c) for c in cards]
 # Create a list of 52 standard playing cards
 def gen_52_cards():
     deck = []
-    for suit in get_all_suits():
+    for suit in _card_suits_.keys():
         for v in range(2,15):
             deck.append(create_card(v,suit))
-        return deck
+    return deck
 
 # Shuffle a set of cards 'reps number of times
 def shuffle_cards(cards, reps = 1):
