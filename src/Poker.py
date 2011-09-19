@@ -39,21 +39,19 @@ def main(number):
     NewRound()
 
 def GeneratePlayers(n):
-    print ("generating" , n , "players") #hmm dette skjer ikke
+    print ("generating" , n , "players")
     for i in range(n):
-        players.append(Player())
+        players.append(Player(i))
 
 
 def NewRound():
     # Henter en ny kortstokk og starter en ny runde
     #velger ny big blind og small blind
-    global bigBlind
-    global smallBlind
-    global players
+    global bigBlind,smallBlind,players,remainingPlayers
     bigBlind = players[0]
     smallBlind = players[1]
     deck = cards.gen_52_shuffled_cards
-    remaningPlayers = players
+    remainingPlayers = players
     # Trekker kort til alle spillerene
     for p in players:
         p.cards = DrawCards(2)
@@ -79,6 +77,7 @@ def NewRound():
 
 def InitialBet():
     # Starter med at smallBlind og bigBlind m? vedde
+    global remainingPlayers
     smallBlind.Raise(raiseValue)
     bigBlind.Call()
     bigBlind.Raise(raiseValue)
@@ -86,15 +85,19 @@ def InitialBet():
     # Det er her helt tilfeldig hva de gj?r
     firstRound = True # Brukes for aa soerge for at smallBlind og bigBlind ikke vedder 2 ganger den foerste runden
     while remainingPlayers:
+        RemoveFolds()
         for p in remainingPlayers:
             if (p != smallBlind or not firstRound) and (p != bigBlind or not firstRound):
                 i = random.randint(0,2)
                 if i == 0:
                     p.Fold()
+                    print("player ", p.name, "has folded")
                 elif i == 1:
                     p.Raise(raiseValue)
+                    print("player ", p.name," has raised with ", raiseValue )
                 else:
                     p.Call()
+                    print("player ", p.name, "has called")
         if firstRound:
             firstRound = False
 
@@ -108,18 +111,41 @@ def FlopBet():
         for card in tableCards:
             hand.append(card)
         power = cards.calc_cards_power(hand)[0]
-        if power > 4:
+        if power > 4 and p.bet < 2*raiseValue:
             p.Raise(raiseValue)
         elif power > 2:
             p.Call()
         else:
             p.Fold()
 
-def TurBet():
-    pass
+
+def TurnBet():
+    #Her velger man handling basert på powerrating akkurat som etter flop
+    for p in remainingPlayers:
+        hand = p.cards
+        for card in tableCards:
+            hand.append(card)
+        power = cards.calc_cards_power(hand)[0]
+        if power > 4 and p.bet < 2*raiseValue:
+            p.Raise(raiseValue)
+        elif power > 2:
+            p.Call()
+        else:
+            p.Fold()
 
 def RiverBet():
-    pass
+        #Her velger man handling basert på powerrating akkurat som etter flop
+    for p in remainingPlayers:
+        hand = p.cards
+        for card in tableCards:
+            hand.append(card)
+        power = cards.calc_cards_power(hand)[0]
+        if power > 4 and p.bet < 2*raiseValue:
+            p.Raise(raiseValue)
+        elif power > 2:
+            p.Call()
+        else:
+            p.Fold()
 
 
 def DrawCards(n):
@@ -127,6 +153,15 @@ def DrawCards(n):
     for i in range(n):
         c.append(deck.pop)
     return c
+
+def RemoveFolds():
+    global remainingPlayers
+    temp = deque(remainingPlayers)
+    for p in remainingPlayers:
+        if not p.playing:
+            temp.remove(p)
+    remainingPlayers = temp
+
 
 
 
@@ -136,32 +171,39 @@ class Player:
     cards = []
     cash = 0
     bet = 0
+    name = 0
+    playing = True
 
-    def __init__(self):
+    def __init__(self,n):
         self.cards = []
         self.cash = startingCash
         self.bet = 0
+        self.name= n
 
-    def Fold():
+    def Fold(self):
         #Kaster spilleren ut av remainingPlayers
-        remainingPlayers.remove(self)
+        self.playing = False
+        print("player ", self.name, " has folded")
 
 
-    def Raise(b):
+    def Raise(self, b):
         #?ker potten og minker cash med bet. Setter ogs? currentBet lik bet
-
+        global currentBet, pot
         #setter temp til verdien som spilleren m? legge til for ? raise med b
-        temp = b + (currentBet - bet)
-        bet+=temp
-        cash-=temp
+        temp = b + (currentBet - self.bet)
+        self.bet+=temp
+        self.cash-=temp
         currentBet = temp
         pot += b
+        print("player " , self.name, " has raised by ", b  )
 
-    def Call():
+    def Call(self):
         #?ker bet med s? mye som trengs for at bet skal bli lik currentBet
-        cash -= currentBet - bet
-        pot += currentBet -bet
-        bet = currentBet
+        global currentBet, pot
+        self.cash -= currentBet - self.bet
+        pot += currentBet - self.bet
+        self.bet = currentBet
+        print("player", self.name , "has called")
 
 
 
