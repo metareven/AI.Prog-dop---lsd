@@ -43,7 +43,7 @@ def gen_52_cards():
     for suit in get_all_suits():
         for v in range(2,15):
             deck.append(create_card(v,suit))
-        return deck
+    return deck
 
 # Shuffle a set of cards 'reps number of times
 def shuffle_cards(cards, reps = 1):
