@@ -47,7 +47,7 @@ def GeneratePlayers(n):
 def NewRound():
     # Henter en ny kortstokk og starter en ny runde
     #velger ny big blind og small blind
-    global bigBlind,smallBlind,players,remainingPlayers, deck
+    global bigBlind,smallBlind,players,remainingPlayers, deck, tableCards
     bigBlind = players[0]
     smallBlind = players[1]
     deck = cards.gen_52_shuffled_cards()
@@ -59,16 +59,19 @@ def NewRound():
     InitialBet()
     # Trekker flop-kort
     tableCards = DrawCards(3)
+    print("TABLE CARDS: ", tableCards)
     # Ny runde med vedding
     FlopBet()
     # Trekker turn-kort
     flop = DrawCards(1)
     tableCards.append(flop[0])
+    print("TABLE CARDS: ", tableCards)
     # Ny runde med vedding
     TurnBet()
     # Trekker river-kort
     river = DrawCards(1)
     tableCards.append(river[0])
+    print("TABLE CARDS: ", tableCards)
     # Siste runde med vedding
     RiverBet()
     # Showdown
@@ -77,7 +80,7 @@ def NewRound():
 
 def InitialBet():
     # Starter med at smallBlind og bigBlind m? vedde
-    print("start initial bet")
+    print("START INITIAL BET")
     global remainingPlayers
     print("small blind")
     smallBlind.Raise(raiseValue)
@@ -105,57 +108,63 @@ def InitialBet():
         numberOfBettingRounds += 1
         if firstRound:
             firstRound = False
-        print("end initial bet")
+    print("END INITIAL BET")
                     
 def FlopBet():
     # Her velger man handling basert p? power rating
-    # Har man power rating p? under 3 velger man Fold
-    # Har man power rating mellom 3 og 4 velger man Call
-    # Har man power rating p? over 4 velger man Raise
-    print("start flop bet")
+    # Har man power rating p? under 2 velger man Fold
+    # Har man power rating mellom 2 og 3velger man Call
+    # Har man power rating p? over 3 velger man Raise
+    print("START FLOP BET")
     numberOfBettingRounds = 0
     global tableCards, remainingPlayers
+    RemoveFolds()
     while remainingPlayers and numberOfBettingRounds < 1:
+        RemoveFolds()
         for p in remainingPlayers:
             hand = p.cards
             for card in tableCards:
                 hand.append(card)
             power = cards.calc_cards_power(hand)[0]
-            if power > 4 and p.bet < 2*raiseValue:
+            if power > 3 and p.bet < 2*raiseValue:
                 p.Raise(raiseValue)
-            elif power > 2:
+            elif power > 1:
                 p.Call()
             else:
                 p.Fold()
         numberOfBettingRounds += 1
-    print("end flop bet")
+    print("END FLOP BET")
                 
 def TurnBet():
     #Her velger man handling basert p powerrating akkurat som etter flop
-    print("start turn bet")
+    print("START TURN BET")
     numberOfBettingRounds = 0
     global tableCards, remainingPlayers
+    RemoveFolds()
     while remainingPlayers and numberOfBettingRounds < 1:
+        RemoveFolds()
         for p in remainingPlayers:
             hand = p.cards
             for card in tableCards:
                 hand.append(card)
             power = cards.calc_cards_power(hand)[0]
-            if power > 4 and p.bet < 2*raiseValue:
+            if power > 3 and p.bet < 2*raiseValue:
                 p.Raise(raiseValue)
-            elif power > 2:
+            elif power > 1:
                 p.Call()
             else:
                 p.Fold()
         numberOfBettingRounds += 1
-    print("end turn bet")
+    print("END TURN BET")
 
 def RiverBet():
     #Her velger man handling basert p powerrating akkurat som etter flop
-    print("start river bet")
+    print("START RIVER BET")
     numberOfBettingRounds = 0
     global tableCards, remainingPlayers
+    RemoveFolds()
     while remainingPlayers and numberOfBettingRounds < 1:
+        RemoveFolds()
         for p in remainingPlayers:
             hand = p.cards
             for card in tableCards:
@@ -168,7 +177,7 @@ def RiverBet():
             else:
                 p.Fold()
         numberOfBettingRounds += 1
-    print("end river bet")
+    print("END RIVER BET")
 
 
 def DrawCards(n):
@@ -189,8 +198,11 @@ def RemoveFolds():
 
 def CheckIfFinished():
     global remainingPlayers
-    if len(remainingPlayers) == 1:
-        print("the winner is: " + str(remainingPlayers[0].name))
+    actualRemainingPlayers = []
+    for p in remainingPlayers:
+        if p.playing: actualRemainingPlayers.append(p)
+    if len(actualRemainingPlayers) == 1:
+        print("THE WINNER IS: " + str(actualRemainingPlayers[0].name))
         
 
 
@@ -241,4 +253,4 @@ class Player:
 
 
 if __name__ == '__main__':
-    main(4)
+    main(10)
