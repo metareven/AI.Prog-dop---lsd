@@ -75,6 +75,7 @@ def NewRound():
     # Siste runde med vedding
     RiverBet()
     # Showdown
+    Showdown()
     players.rotate(1)
 
 
@@ -178,6 +179,29 @@ def RiverBet():
                 p.Fold()
         numberOfBettingRounds += 1
     print("END RIVER BET")
+
+def Showdown():
+    global remainingPlayers
+    global tableCards
+    print("SHOWDOWN!")
+    print("Remaining players:", len(remainingPlayers))
+    if len(remainingPlayers) > 0:
+        currentWinner = remainingPlayers[0]
+        hand = currentWinner.cards
+        for c in tableCards:
+            hand.append(c)
+        winningHand = cards.calc_cards_power(hand)
+        print("Player:", currentWinner.name, winningHand)
+    for i in range(1, len(remainingPlayers)):
+        hand2 = remainingPlayers[i].cards
+        for c in tableCards:
+            hand2.append(c)
+        power2 = cards.calc_cards_power(hand2)
+        print("Player:", remainingPlayers[i].name, power2)
+        if cards.card_power_greater(power2, winningHand):
+            currentWinner = remainingPlayers[i]
+            winningHand = power2
+    print("WINNER AFTER SHOWDOWN: ", currentWinner.name, winningHand)
 
 
 def DrawCards(n):
