@@ -41,19 +41,19 @@ def copy_cards(cards): return [copy_card(c) for c in cards]
 def gen_52_cards():
     deck = []
     for suit in get_all_suits():
-        for v in range(2,15):
-            deck.append(create_card(v,suit))
-        return deck
+	for v in range(2,15):
+	    deck.append(create_card(v,suit))
+    return deck
 
 # Shuffle a set of cards 'reps number of times
 def shuffle_cards(cards, reps = 1):
     for rep in range(reps):
-        new_cards = []
-    for i in range(len(cards)-1,-1,-1):
+	new_cards = []
+	for i in range(len(cards)-1,-1,-1):
 	    index =random.randint(0,i)
 	    new_cards.append(cards[index])
 	    cards[index:index+1] = [] # Removing the indexed item
-    cards = new_cards
+	cards = new_cards
     return cards
 
 def gen_52_shuffled_cards(reps = 5):
@@ -70,13 +70,13 @@ def gen_random_cards(count, reps = 5):
 
 def find_list_item(L,item,key=(lambda x: x)):
     for x in L:
-        if item == key(x):
-            return x
+	if item == key(x):
+	    return x
 
 def kd_sort(elems, prop_func = (lambda x: x), dir = 'increase'):
     elems.sort(key=prop_func) # default of the sort func is increasing order
     if dir =='decrease' or dir =='decr':
-        elems.reverse()
+	elems.reverse()
 
 # This groups a set of elements by shared values of a specified property (which is determined by
 # prop_func), where the equality of two values is determined by eq_func.  For example, this might
@@ -90,12 +90,12 @@ def partition(elems, prop_func = (lambda x:x), eq_func = (lambda x,y: x == y)):
     last_key = False
     counter = 0
     for elem in elems:
-        new_key = apply(prop_func, [elem])
-    if not(subset) or not(apply(eq_func,[last_key,new_key])):
+	new_key = apply(prop_func, [elem])
+	if not(subset) or not(apply(eq_func,[last_key,new_key])):
 	    if subset: partition.append(subset)
 	    subset = [elem]
 	    last_key = new_key
-    else: subset.append(elem)
+	else: subset.append(elem)
     if subset: partition.append(subset)
     return partition
 
@@ -139,34 +139,34 @@ def calc_cards_power (cards, target_len = 5):
     vgroups = gen_value_groups(cards)
     flush = find_flush(cards, target_len = target_len)
     if flush:
-        str_in_flush = find_straight(flush,target_len = target_len)
+	str_in_flush = find_straight(flush,target_len = target_len)
     if flush and str_in_flush:
-        return calc_straight_flush_power(str_in_flush)
+	return calc_straight_flush_power(str_in_flush)
     elif has_len(4, vgroups[0]):
-        return calc_4_kind_power(vgroups)
-    elif has_len(3, vgroups[0]) and len(vgroups) > 1 and len(vgroups[1]) >= 2:
+	return calc_4_kind_power(vgroups)
+    elif has_len(3, vgroups[0]) and len(vgroups) > 1 and len(vgroups[1]) >= 2: 
         return calc_full_house_power(vgroups)
     elif flush:
-        return calc_simple_flush_power(flush)
+	return calc_simple_flush_power(flush)
     else:
-        straight = find_straight(cards)
-    if straight:
+	straight = find_straight(cards)
+	if straight:
 	    return calc_straight_power(straight)
-    elif has_len(3,vgroups[0]):
+	elif has_len(3,vgroups[0]):
 	    return calc_3_kind_power(vgroups)
-    elif has_len(2,vgroups[0]):
+	elif has_len(2,vgroups[0]):
 	    if len(vgroups) > 1 and has_len(2,vgroups[1]):
-                return calc_2_pair_power(vgroups)
+		return calc_2_pair_power(vgroups)
 	    else: return calc_pair_power(vgroups)
-    else: return calc_high_card_power(cards)
+	else: return calc_high_card_power(cards)
 
 def card_power_greater(p1,p2): # Both are power ratings = lists of power integers returned by calc_cards_power
     if not(p1) or not(p2):
-        return False
+	return False
     elif p1[0] == p2[0]:
-        return card_power_greater(p1[1:],p2[1:])
+	return card_power_greater(p1[1:],p2[1:])
     elif p1[0] > p2[0]:
-        return True
+	return True
     else: return False
 
 # Functions for finding flushes and straights in a set of cards (of any length)
@@ -182,20 +182,20 @@ def find_straight(cards, target_len = 5):
     scards = gen_ordered_cards(cards, dir = 'decrease')
 
     def scan(cards, straight):
-        if len(straight) == target_len:
-            return straight
-        elif ace and 2 == card_value(straight[0]) and len(straight) == target_len - 1:
-            return [ace] + straight
-        elif not(cards):
-            return False # null check is late since variable 'cards not involved in 1st 2 cases
-
-        c = cards.pop(0)
-        if card_value(c) == card_value(straight[0]) - 1:
-            return scan(cards,[c] + straight)
-        elif card_value(c) == card_value(straight[0]):
-            return scan(cards,straight)
-        else: # Broken straight, so start again with the current card
-	           return scan(cards,[c])
+	if len(straight) == target_len:
+	    return straight
+	elif ace and 2 == card_value(straight[0]) and len(straight) == target_len - 1:
+	    return [ace] + straight
+	elif not(cards):
+	    return False # null check is late since variable 'cards not involved in 1st 2 cases
+	
+	c = cards.pop(0)
+	if card_value(c) == card_value(straight[0]) - 1:
+	    return scan(cards,[c] + straight)
+	elif card_value(c) == card_value(straight[0]):
+	    return scan(cards,straight)
+	else: # Broken straight, so start again with the current card
+	    return scan(cards,[c])
 
     top_card = scards.pop(0)
     return scan(scards,[top_card])
@@ -206,7 +206,7 @@ def max_group_vals(groups,count):
    vals = [card_value(g[0]) for g in groups]
    kd_sort(vals,dir='decrease')
    return vals[0:count]
-
+   
 
 # Straights are presumably sorted in ASCENDING order
 def calc_straight_flush_power(straight):
@@ -255,8 +255,8 @@ class card_deck():
       if self.cards:
          return self.cards.pop(0)
       else:
-        print( "The deck is empty")
-        return False
+         print "The deck is empty"
+         return False
 
    def deal_n_cards(self,n):
       cards = []
@@ -265,22 +265,14 @@ class card_deck():
          if card:
             cards.append(card)
          else:
-            print ("Not enough cards in the deck")
+            print "Not enough cards in the deck"
             return False
       return cards
-
+    
 
 # Main routine for testing the generation and classification (via power ratings) of many poker hands.
 def power_test(hands, hand_size = 7):
     for i in range(hands):
         deck = card_deck()
-    cards = deck.deal_n_cards(hand_size)
-    print( "Hand: " , card_names(cards), '  Power: ', calc_cards_power(cards))
-
-
-
-
-
-
-
-
+	cards = deck.deal_n_cards(hand_size)
+	print "Hand: " , card_names(cards), '  Power: ', calc_cards_power(cards)

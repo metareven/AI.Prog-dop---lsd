@@ -31,7 +31,6 @@ raiseValue = 100 # Verdien det skal okes med nar man raiser
 
 
 def main(number):
-    #print(cards.power_test(1))
     print("starting new game with " , number , " players" )
     global blindNumber, startingCash
     blindNumber = 0
@@ -48,7 +47,7 @@ def GeneratePlayers(n):
 def NewRound():
     # Henter en ny kortstokk og starter en ny runde
     #velger ny big blind og small blind
-    global bigBlind,smallBlind,players,remainingPlayers,tableCards, deck
+    global bigBlind,smallBlind,players,remainingPlayers, deck, tableCards
     bigBlind = players[0]
     smallBlind = players[1]
     deck = cards.gen_52_shuffled_cards()
@@ -57,159 +56,160 @@ def NewRound():
     for p in players:
         p.cards = DrawCards(2)
     # Forste runde med vedding
-    print("starting pre-flop betting")
     InitialBet()
     # Trekker flop-kort
     tableCards = DrawCards(3)
+    print("TABLE CARDS: ", tableCards)
     # Ny runde med vedding
-    print("starting flop betting")
     FlopBet()
     # Trekker turn-kort
-    turn = DrawCards(1)
-    tableCards.append(turn[0])
+    flop = DrawCards(1)
+    tableCards.append(flop[0])
+    print("TABLE CARDS: ", tableCards)
     # Ny runde med vedding
-    print("starting turn betting")
     TurnBet()
     # Trekker river-kort
     river = DrawCards(1)
     tableCards.append(river[0])
+    print("TABLE CARDS: ", tableCards)
     # Siste runde med vedding
-    print("starting river betting")
     RiverBet()
     # Showdown
+    Showdown()
     players.rotate(1)
 
 
 def InitialBet():
     # Starter med at smallBlind og bigBlind m? vedde
+    print("START INITIAL BET")
     global remainingPlayers
+    print("small blind")
     smallBlind.Raise(raiseValue)
+    print("big blind")
     bigBlind.Call()
     bigBlind.Raise(raiseValue)
     # Hver spiller m? s? ta fold, call eller raise
     # Det er her helt tilfeldig hva de gj?r
     firstRound = True # Brukes for aa soerge for at smallBlind og bigBlind ikke vedder 2 ganger den foerste runden
-    stillBetting = True # brukes for Ã¥ se om man er ferdig med Ã¥ vedde eller ikke
-    while len(remainingPlayers) > 1 and stillBetting  :
+    numberOfBettingRounds = 0
+    while remainingPlayers and numberOfBettingRounds < 2:
         RemoveFolds()
         for p in remainingPlayers:
             if (p != smallBlind or not firstRound) and (p != bigBlind or not firstRound):
                 i = random.randint(0,2)
                 if i == 0:
                     p.Fold()
+                    #print("player ", p.name, "has folded")
                 elif i == 1:
                     p.Raise(raiseValue)
+                    #print("player ", p.name," has raised with ", raiseValue )
                 else:
                     p.Call()
+                    #print("player ", p.name, "has called")
+        numberOfBettingRounds += 1
         if firstRound:
             firstRound = False
-
-        stillBetting = PlayersStillbetting()
-
+    print("END INITIAL BET")
+                    
 def FlopBet():
     # Her velger man handling basert p? power rating
-    # Har man power rating p? under 3 velger man Fold
-    # Har man power rating mellom 3 og 4 velger man Call
-    # Har man power rating p? over 4 velger man Raise
-    stillBetting = True # brukes for Ã¥ se om man er ferdig med Ã¥ vedde eller ikke
-    while len(remainingPlayers) > 1 and stillBetting  :
+    # Har man power rating p? under 2 velger man Fold
+    # Har man power rating mellom 2 og 3velger man Call
+    # Har man power rating p? over 3 velger man Raise
+    print("START FLOP BET")
+    numberOfBettingRounds = 0
+    global tableCards, remainingPlayers
+    RemoveFolds()
+    while remainingPlayers and numberOfBettingRounds < 1:
         RemoveFolds()
         for p in remainingPlayers:
-            hand = [p.cards[0] , p.cards[1]]
+            hand = p.cards
             for card in tableCards:
                 hand.append(card)
-            p.cards = hand
             power = cards.calc_cards_power(hand)[0]
-            print("spiller",p.name,"har håndstyrke",power)
-            if power > 4 and p.bet < 2*raiseValue:
-             p.Raise(raiseValue)
-            elif power > 2 or currentBet == p.bet:
-                p.Call()
-            else:
-                print("currentbet",currentBet,"vs", p.bet)
-                p.Fold()
-
-
-def TurnBet():
-    #Her velger man handling basert pÃƒÂ¥ powerrating akkurat som etter flop
-    stillBetting = True # brukes for Ã¥ se om man er ferdig med Ã¥ vedde eller ikke
-    while len(remainingPlayers) > 1 and stillBetting  :
-        RemoveFolds()
-        for p in remainingPlayers:
-            hand = [p.cards[0] , p.cards[1]]
-            for card in tableCards:
-                hand.append(card)
-            p.cards = hand
-            power = cards.calc_cards_power(hand)[0]
-            print("spiller",p.name,"har håndstyrke",power)
-            if power > 4 and p.bet < 2*raiseValue:
+            if power > 3 and p.bet < 2*raiseValue:
                 p.Raise(raiseValue)
-            elif power > 2 or currentBet == p.bet:
+            elif power > 1:
                 p.Call()
             else:
-                print("currentbet",currentBet,"vs", p.bet)
                 p.Fold()
+        numberOfBettingRounds += 1
+    print("END FLOP BET")
+                
+def TurnBet():
+    #Her velger man handling basert p powerrating akkurat som etter flop
+    print("START TURN BET")
+    numberOfBettingRounds = 0
+    global tableCards, remainingPlayers
+    RemoveFolds()
+    while remainingPlayers and numberOfBettingRounds < 1:
+        RemoveFolds()
+        for p in remainingPlayers:
+            hand = p.cards
+            for card in tableCards:
+                hand.append(card)
+            power = cards.calc_cards_power(hand)[0]
+            if power > 3 and p.bet < 2*raiseValue:
+                p.Raise(raiseValue)
+            elif power > 1:
+                p.Call()
+            else:
+                p.Fold()
+        numberOfBettingRounds += 1
+    print("END TURN BET")
 
 def RiverBet():
-        #Her velger man handling basert pÃƒÂ¥ powerrating akkurat som etter flop
-    stillBetting = True # brukes for Ã¥ se om man er ferdig med Ã¥ vedde eller ikke
-    while len(remainingPlayers) > 1 and stillBetting  :
+    #Her velger man handling basert p powerrating akkurat som etter flop
+    print("START RIVER BET")
+    numberOfBettingRounds = 0
+    global tableCards, remainingPlayers
+    RemoveFolds()
+    while remainingPlayers and numberOfBettingRounds < 1:
         RemoveFolds()
         for p in remainingPlayers:
-            hand = [p.cards[0] , p.cards[1]]
+            hand = p.cards
             for card in tableCards:
                 hand.append(card)
-            p.cards = hand
             power = cards.calc_cards_power(hand)[0]
-            print("spiller",p.name,"har håndstyrke",power)
             if power > 4 and p.bet < 2*raiseValue:
                 p.Raise(raiseValue)
-            elif power > 2 or currentBet == p.bet:
+            elif power > 2:
                 p.Call()
             else:
-                print("currentbet",currentBet,"vs", p.bet)
                 p.Fold()
-
+        numberOfBettingRounds += 1
+    print("END RIVER BET")
 
 def Showdown():
-    best = 0
-    i = 1
-    handType = None
-    for p in remainingPlayers:
-        temp = cards.calc_cards_power(p.cards)[0]
-        if temp >= best:
-            best = temp
-            handType = cards.calc_cards_power(p.cards)
-        else:
-            p.playing = False
-        RemoveFolds()
-        best = 0
-    while(i >= len(handType) and remainingPlayers > 1):
-        for p in remainingPlayers:
-            temp = cards.calc_cards_power(p.cards)[i]
-            if temp >= best:
-                best = temp
-                handType = cards.calc_cards_power(p.cards)
-            else:
-                p.playing = False
-
-        RemoveFolds()
-        best = 0
-        ++i
-
-    print ("player",remainingPlayers, "wins!")
-    prize = pot/len(remainingPlayers)
-    for p in remainingPlayers:
-        p.cash += prize
-
-
+    global remainingPlayers
+    global tableCards
+    print("SHOWDOWN!")
+    print("Remaining players:", len(remainingPlayers))
+    if len(remainingPlayers) > 0:
+        currentWinner = remainingPlayers[0]
+        hand = currentWinner.cards
+        for c in tableCards:
+            hand.append(c)
+        winningHand = cards.calc_cards_power(hand)
+        print("Player:", currentWinner.name, winningHand)
+    for i in range(1, len(remainingPlayers)):
+        hand2 = remainingPlayers[i].cards
+        for c in tableCards:
+            hand2.append(c)
+        power2 = cards.calc_cards_power(hand2)
+        print("Player:", remainingPlayers[i].name, power2)
+        if cards.card_power_greater(power2, winningHand):
+            currentWinner = remainingPlayers[i]
+            winningHand = power2
+    print("WINNER AFTER SHOWDOWN: ", currentWinner.name, winningHand)
 
 
 def DrawCards(n):
     global deck
     c = []
     for i in range(n):
-        c.append(deck.pop())
+        card = deck.pop()
+        c.append(card)
     return c
 
 def RemoveFolds():
@@ -220,12 +220,14 @@ def RemoveFolds():
             temp.remove(p)
     remainingPlayers = temp
 
-def PlayersStillbetting():
+def CheckIfFinished():
+    global remainingPlayers
+    actualRemainingPlayers = []
     for p in remainingPlayers:
-        if(p.bet < currentBet):
-            return True
-    return False
-
+        if p.playing: actualRemainingPlayers.append(p)
+    if len(actualRemainingPlayers) == 1:
+        print("THE WINNER IS: " + str(actualRemainingPlayers[0].name))
+        
 
 
 
@@ -241,12 +243,12 @@ class Player:
         self.cash = startingCash
         self.bet = 0
         self.name= n
-        self.playing = True
 
     def Fold(self):
         #Kaster spilleren ut av remainingPlayers
         self.playing = False
-        print("player ", self.name, " has folded", "with the hand", self.cards)
+        print("player ", self.name, " has folded")
+        CheckIfFinished()
 
 
     def Raise(self, b):
@@ -254,15 +256,11 @@ class Player:
         global currentBet, pot
         #setter temp til verdien som spilleren m? legge til for ? raise med b
         temp = b + (currentBet - self.bet)
-        print("----------------")
-        print("skal raise med",b,". currentBet er",currentBet, "self.bet er",self.bet)
-        print("temp blir da",temp)
-        print("------------")
         self.bet+=temp
         self.cash-=temp
         currentBet = temp
         pot += b
-        print("player " , self.name, " has raised by ", b, "with the hand", self.cards)
+        print("player " , self.name, " has raised by ", b  )
 
     def Call(self):
         #?ker bet med s? mye som trengs for at bet skal bli lik currentBet
@@ -270,12 +268,7 @@ class Player:
         self.cash -= currentBet - self.bet
         pot += currentBet - self.bet
         self.bet = currentBet
-        print("player", self.name , "has called", "with the hand", self.cards)
-
-
-
-
-
+        print("player", self.name , "has called")
 
     #Finner ut om spilleren skal Raise, Calle eller Folde
     def Assess():
