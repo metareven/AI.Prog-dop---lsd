@@ -110,7 +110,7 @@ def InitialBet():
         if firstRound:
             firstRound = False
     print("END INITIAL BET")
-                    
+
 def FlopBet():
     # Her velger man handling basert p? power rating
     # Har man power rating p? under 2 velger man Fold
@@ -135,7 +135,7 @@ def FlopBet():
                 p.Fold()
         numberOfBettingRounds += 1
     print("END FLOP BET")
-                
+
 def TurnBet():
     #Her velger man handling basert p powerrating akkurat som etter flop
     print("START TURN BET")
@@ -145,9 +145,10 @@ def TurnBet():
     while remainingPlayers and numberOfBettingRounds < 1:
         RemoveFolds()
         for p in remainingPlayers:
-            hand = p.cards
+            hand = list([p.cards[0], p.cards[1]])
             for card in tableCards:
                 hand.append(card)
+            p.cards = hand
             power = cards.calc_cards_power(hand)[0]
             if power > 3 and p.bet < 2*raiseValue:
                 p.Raise(raiseValue)
@@ -167,9 +168,10 @@ def RiverBet():
     while remainingPlayers and numberOfBettingRounds < 1:
         RemoveFolds()
         for p in remainingPlayers:
-            hand = p.cards
+            hand = list([p.cards[0], p.cards[1]])
             for card in tableCards:
                 hand.append(card)
+            p.cards = hand
             power = cards.calc_cards_power(hand)[0]
             if power > 4 and p.bet < 2*raiseValue:
                 p.Raise(raiseValue)
@@ -188,16 +190,17 @@ def Showdown():
     if len(remainingPlayers) > 0:
         currentWinner = remainingPlayers[0]
         hand = currentWinner.cards
-        for c in tableCards:
-            hand.append(c)
+        #for c in tableCards:
+            #hand.append(c)
+
         winningHand = cards.calc_cards_power(hand)
-        print("Player:", currentWinner.name, winningHand)
+        print("Player:", currentWinner.name, winningHand, "          ", currentWinner.cards)
     for i in range(1, len(remainingPlayers)):
         hand2 = remainingPlayers[i].cards
-        for c in tableCards:
-            hand2.append(c)
+        #for c in tableCards:
+         #   hand2.append(c)
         power2 = cards.calc_cards_power(hand2)
-        print("Player:", remainingPlayers[i].name, power2)
+        print("Player:", remainingPlayers[i].name, power2, "          ", remainingPlayers[i].cards)
         if cards.card_power_greater(power2, winningHand):
             currentWinner = remainingPlayers[i]
             winningHand = power2
@@ -227,7 +230,7 @@ def CheckIfFinished():
         if p.playing: actualRemainingPlayers.append(p)
     if len(actualRemainingPlayers) == 1:
         print("THE WINNER IS: " + str(actualRemainingPlayers[0].name))
-        
+
 
 
 
