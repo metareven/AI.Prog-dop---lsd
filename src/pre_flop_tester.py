@@ -1,22 +1,60 @@
 import cards
 import itertools
-
+from sys import stdout
+import datetime
 
 def main():
+    start = datetime.datetime.now()
+    stdout.write("Start time: ")
+    stdout.write(str(start)+'\n')
     kortstokk = cards.gen_52_cards()     # Ny kortstokk
-    pre_flop_table = makePreFlopTable()  # Her lages pre-flop tabellen der sansynlighetene for å vinne skal legges inn
+    pre_flop_table = makePreFlopTable()  # Her lages pre-flop tabellen der sansynlighetene for aa vinne skal legges inn
     allHoleCombinations = list(itertools.combinations(kortstokk, 2)) # Liste med alle mulige hullkombinasjoner
-    allHoleCombinations = [([14,'D'], [14,'H']), ([2,'D'], [3, 'D']), ([2, 'D'], [4, 'S'])]
-    calculateProbabilities(allHoleCombinations, pre_flop_table) # Her regner man ut de faktiske sansynlighetene for å vinne for hver mulige hullkortkombinasjon
-    print pre_flop_table[14-2][14-2][0][5-2]
-    print pre_flop_table[3-2][2-2][1][5-2]
-    print pre_flop_table[4-2][2-2][0][5-2]
+    #allHoleCombinations = [([14,'D'], [14,'H']), ([2,'D'], [3, 'D']), ([2, 'D'], [4, 'S'])]
+    calculateProbabilities(allHoleCombinations, pre_flop_table) # Her regner man ut de faktiske sansynlighetene for aa vinne for hver mulige hullkortkombinasjon
+    works = True
+    for i in range(9):
+        for j in range(13):
+            for k in range (0, j):
+                if pre_flop_table[j][k][0][i] == -1:
+                    works = False
+                elif pre_flop_table[j][k][1][i] == -1:
+                    works = False
+    print works
+    print pre_flop_table[14-2][14-2][0][8]
+    print pre_flop_table[3-2][2-2][1][8]
+    print pre_flop_table[4-2][2-2][0][8]
+    print pre_flop_table[0][0][0][0]
     makePreFlopFile(pre_flop_table) # Her lages det en fil av tabellen med sansynlighetene
+    end = datetime.datetime.now()
+    stdout.write("End time: ")
+    stdout.write(str(end)+'\n')
+    
 
-# Metoden lager en fil som skal representere tabellen den får inn
+# Metoden lager en fil som skal representere tabellen den faar inn
 # table er en 4-dimensjonal tabell med sansynligheter
 def makePreFlopFile(table):
-    return 0
+    for i in range(9):
+        stdout.write(str(i)+'\n')
+        stdout.write('unsuited\n')
+        for j in range(1,14):
+            for k in range(1, j+1):
+                if k == j:
+                    stdout.write(str("%.6f" % round(table[j-1][k-1][0][i], 2))+'\n')
+                else:
+                    stdout.write(str("%.6f" % round(table[j-1][k-1][0][i], 6))+" ")
+
+    for i in range(9):
+        stdout.write(str(i)+'\n')
+        stdout.write('suited\n')
+        for j in range(1,14):
+            for k in range(1, j+1):
+                if k == j:
+                    # stdout.write(str(table[j][k][0][i])+'\n')
+                    stdout.write(str("%.6f" % round(table[j-1][k-1][0][i], 2))+'\n')
+                else:
+                    # stdout.write(str(table[j][k][0][i]) + " ")
+                    stdout.write(str("%.6f" % round(table[j-1][k-1][0][i], 6))+" ")
 
 
 # Her fjerner man player sine kort fra kortstokken, slik at ingen av
@@ -25,7 +63,7 @@ def removeComb(hole, kortstokk):
     for h in hole:
         kortstokk.remove(h)
 
-# Metoden regner ut utfallet av en showdown med hensyn på player   
+# Metoden regner ut utfallet av en showdown med hensyn paa player   
 # player er hullkortene til spilleren man skal sjekke resultatet til
 # tableCards er de 5 kortene paa bordet
 # opponents er en liste med motstandere, der hver motstander bestaar av en
@@ -63,28 +101,28 @@ def calculateOutcome(player, tableCards, opponents):
         return 0
     
 # Metoden regner ut sansynligheter for alle mulige komobinasjoner og legger 
-# dem til i pre_flop_table. Sansynlighetene regnes ut ved å gi alle
-# motstanderne 2 tilfeldige kort hver og å legge ut 5 tilfeldige kort på bordet.
-# Dette gjøres numberOfRollouts ganger også regner man ut sansynligheten for å
-# vinne basert på antall seiere, uavgjort og tap.
-# Dette gjøres for 1 til 9 motstandere.
+# dem til i pre_flop_table. Sansynlighetene regnes ut ved aa gi alle
+# motstanderne 2 tilfeldige kort hver og aa legge ut 5 tilfeldige kort paa bordet.
+# Dette gjoeres numberOfRollouts ganger ogsaa regner man ut sansynligheten for aa
+# vinne basert paa antall seiere, uavgjort og tap.
+# Dette gjoeres for 1 til 9 motstandere.
 def calculateProbabilities(allHoleCombinations, pre_flop_table):
     for n in range(1, 10): # For 1 til 9 motstandere
         for comb in allHoleCombinations: # For alle kombinasjoner av hullkort
             comb = list(comb)
             sorter(comb)
             classAlreadyCalculated = False
-            # Her sjekkes det om det allerede er regnet ut sansynligheten for å vinne for denne ekvivalensklassen
+            # Her sjekkes det om det allerede er regnet ut sansynligheten for aa vinne for denne ekvivalensklassen
             if comb[0][1] == comb[1][1]:
                 if pre_flop_table[comb[0][0]-2][comb[1][0]-2][1][n-1] != -1:
                     classAlreadyCalculated = True
-            elif pre_flop_table[comb[0][1]-2][comb[1][0]-2][0][n-1] != -1:
+            elif pre_flop_table[comb[0][0]-2][comb[1][0]-2][0][n-1] != -1:
                     classAlreadyCalculated = True
             if not classAlreadyCalculated:
                 numberOfWins = float(0)
                 numberOfDraws = float(0)
                 numberOfLose = float(0)
-                numberOfRollouts = 10000
+                numberOfRollouts = 5000
                 for i in range(numberOfRollouts):
                     new_cards = cards.gen_52_shuffled_cards()
                     removeComb(comb, new_cards)
@@ -104,20 +142,20 @@ def calculateProbabilities(allHoleCombinations, pre_flop_table):
                         numberOfDraws += 1
                     else:
                         numberOfWins += 1
-                    temp_strength = float(((numberOfWins + numberOfDraws / float(2))) / (numberOfWins + numberOfDraws + numberOfLose)))
+                    temp_strength = (numberOfWins + (numberOfDraws / float(2))) / (numberOfWins + numberOfDraws + numberOfLose)
                     actual_strength = float(1)
-                    for i in range(4):
+                    for i in range(n):
                         actual_strength = actual_strength * temp_strength
-                    print comb
-                    print len(pre_flop_table)
-                    print len(pre_flop_table[14-2])
+                    #print comb
+                    #print len(pre_flop_table)
+                    #print len(pre_flop_table[14-2])
                     if comb[0][1] != comb[1][1]:
                         pre_flop_table[comb[0][0]-2][comb[1][0]-2][0][n-1] = actual_strength
                     else:
                         pre_flop_table[comb[0][0]-2][comb[1][0]-2][1][n-1] = actual_strength
 
 def sorter(liste):
-    print liste
+    #print liste
     if liste[0][0] < liste[1][0]:
         temp = liste[1]
         liste[1] = liste[0]
@@ -126,7 +164,7 @@ def sorter(liste):
 
 def makePreFlopTable():
     pre_flop_table = [] 
-    for i in range(1, 15):
+    for i in range(1, 14):
         unsuited = [-1] * 9
         suited = [-1] * 9
         new_inner = [[unsuited, suited]] * i
