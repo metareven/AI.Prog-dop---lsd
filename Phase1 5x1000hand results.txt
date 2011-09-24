@@ -1,60 +1,65 @@
 Round: 1
-Name:	Cash after 1k hands:
-player 0 || has 67950.0 
-player 1 || has -27900.0 
-player 2 || has 26200.0 
-player 3 || has 51000.0 
-player 4 || has 1750.0 
-player 5 || has -650.0 
-player 6 || has 45550.0 
-player 7 || has -12100.0 
-player 8 || has -29200.0 
-player 9 || -22600.0
+Name:			Cash after 1k hands:
+player 0 ( conservative ) 	has 36500.0 left
+player 1 ( bluffer ) 		has -44900.0 left
+player 2 ( persistent ) 	has -3700.0 left
+player 3 ( conservative ) 	has 74400.0 left
+player 4 ( bluffer ) 		has 35800.0 left			
+player 5 ( persistent ) 	has -66500.0 left
+player 6 ( conservative ) 	has 72650.0 left
+player 7 ( bluffer ) 		has -62500.0 left
+player 8 ( persistent ) 	has -6550.0 left
+player 9 ( conservative ) 	has 64800.0 left
 
-Name:	Cash after 1k hands:
-player 0 ||  86950.0 left
-player 1 ||  -168600.0 
-player 2 ||  53100.0  
-player 3 ||  -58300.0  
-player 4 ||  -31050.0  
-player 5 ||  48900.0  
-player 6 ||  22250.0  
-player 7 ||  93000.0  
-player 8 ||  59000.0  
-player 9 ||  -5250.0  
 
-Name:	Cash after 1k hands:
-player 0 || -16100.0  
-player 1 || -30000.0   
-player 2 || 32250.0  
-player 3 || -69800.0  
-player 4 || 66850.0  
-player 5 || -51150.0 
-player 6 || 43100.0  
-player 7 || 24450.0  
-player 8 || 64650.0  
-player 9 || 35750.0  
 
-Name:	Cash after 1k hands:
-player 0 || 19200.0 
-player 1 || -15750.0
-player 2 || 111600.0 
-player 3 || 14350.0  
-player 4 || 30100.0  
-player 5 || -27700.0  
-player 6 || -24750.0 
-player 7 || 10300.0  
-player 8 || 5000.0  
-player 9 || -22350.0 
+Name:			Cash after 1k hands:
+player 0 ( conservative )	 has 42100.0 left
+player 1 ( bluffer ) 		has -75700.0 left
+player 2 ( persistent )	 has 55650.0 left
+player 3 ( conservative ) 	has -26400.0 left
+player 4 ( bluffer ) 		has 62000.0 left
+player 5 ( persistent ) 	has -7800.0 left
+player 6 ( conservative ) 	has 73050.0 left
+player 7 ( bluffer ) 		has -22850.0 left			
+player 8 ( persistent )	 has 10700.0 left
+player 9 ( conservative ) 	has -10750.0 left
 
-Name:	Cash after 1k hands:
-player 0 || -79000.0  
-player 1 || 13800.0  
-player 2 || 111200.0 
-player 3 || -37950.0 
-player 4 || 91700.0 
-player 5 || -6650.0 
-player 6 || 28950.0 
-player 7 || -87650.0
-player 8 || 76300.0 
-player 9 || -10700.0 
+
+Name:			Cash after 1k hands:
+player 0 ( conservative ) 	has 68200.0 left
+player 1 ( bluffer ) 		has -16550.0 left
+player 2 ( persistent ) 	has -29200.0 left
+player 3 ( conservative ) 	has 17300.0 left
+player 4 ( bluffer ) 		has -106950.0 left
+player 5 ( persistent ) 	has 78450.0 left
+player 6 ( conservative ) 	has 52250.0 left
+player 7 ( bluffer ) 		has -68550.0 left
+player 8 ( persistent ) 	has 61500.0 left
+player 9 ( conservative ) 	has 43550.0 left
+
+
+Name:			Cash after 1k hands:
+player 0 ( conservative )	 has 105300.0 left
+player 1 ( bluffer ) 		has -42050.0 left
+player 2 ( persistent ) 	has 9550.0 left
+player 3 ( conservative ) 	has 55650.0 left
+player 4 ( bluffer ) 		has -60300.0 left
+player 5 ( persistent ) 	has 75000.0 left
+player 6 ( conservative ) 	has -21950.0 left
+player 7 ( bluffer ) 		has -7250.0 left
+player 8 ( persistent ) 	has -8950.0 left
+player 9 ( conservative )	 has -5000.0 left
+
+
+Name:			Cash after 1k hands:
+player 0 ( conservative ) 	has 15000.0 left
+player 1 ( bluffer ) 		has 8350.0 left
+player 2 ( persistent ) 	has -9850.0 left
+player 3 ( conservative ) 	has -6250.0 left
+player 4 ( bluffer )		 has -76050.0 left
+player 5 ( persistent ) 	has 56600.0 left
+player 6 ( conservative ) 	has 26550.0 left
+player 7 ( bluffer ) 		has -17000.0 left
+player 8 ( persistent ) 	has 100100.0 left
+player 9 ( conservative )	 has 2550.0 left

@@ -48,7 +48,7 @@ def GeneratePlayers(n):
     types = ["conservative", "bluffer", "persistent"]
     counter = 0
     for i in range(n):
-        if(counter >= len(types) -1):
+        if(counter >= len(types)):
             counter = 0
         players.append(Player(i,types[counter]))
         #print("Spawned player",i,"with personality",players[i].personality)
@@ -105,7 +105,7 @@ def InitialBet():
     print "small blind"
     smallBlind.Raise(raiseValue * 0.5)
     print "big blind"
-    #bigBlind.Call()
+
     bigBlind.Raise(raiseValue * 0.5)
     # Hver spiller m? s? ta fold, call eller raise
     # Det er her helt tilfeldig hva de gj?r
@@ -265,16 +265,13 @@ def Showdown():
     if len(remainingPlayers) > 0:
         currentWinner = remainingPlayers[0]
         hand = currentWinner.cards
-        #for c in tableCards:
-            #hand.append(c)
 
         winningHand = cards.calc_cards_power(hand)
         winners.append(remainingPlayers[0])
         print "Player:", currentWinner.name, winningHand, "     ", currentWinner.cards
     for i in range(1,len(remainingPlayers)):
         hand2 = remainingPlayers[i].cards
-        #for c in tableCards:
-         #   hand2.append(c)
+
         power2 = cards.calc_cards_power(hand2)
         print "Player:", remainingPlayers[i].name, power2, "        ", remainingPlayers[i].cards
         for j in range(len(power2)):
@@ -295,7 +292,7 @@ def Showdown():
 def PrintMoney():
     asd = 0
     for p in players:
-        print "player",p.name,"has",p.cash,"left"
+        print "player",p.name,"(",p.personality,")","has",p.cash,"left"
         asd += p.cash
     print "check",  (asd/(len(players)))
 
