@@ -31,13 +31,17 @@ raiseValue = 100 # Verdien det skal okes med nar man raiser
 
 
 
-def main(number):
-    print("starting new game with " , number , " players" )
+def main(pNumber,rounds):
+
+    print "starting new game with " , pNumber , " players"
     global blindNumber, startingCash
     blindNumber = 0
     startingCash = 10000
-    GeneratePlayers(number) #lager spillere
-    NewRound()
+    GeneratePlayers(pNumber) #lager spillere
+    for i in range(rounds):
+        NewRound()
+        PrintMoney()
+
 
 def GeneratePlayers(n):
     print ("generating" , n , "players")
@@ -68,20 +72,20 @@ def NewRound():
     if(not done):
         # Trekker flop-kort
        tableCards = DrawCards(3)
-       print("TABLE CARDS: ", tableCards)
+       print "TABLE CARDS: ", tableCards
        # Ny runde med vedding
        FlopBet()
        if(not done):
             # Trekker turn-kort
             flop = DrawCards(1)
             tableCards.append(flop[0])
-            print("TABLE CARDS: ", tableCards)
+            print "TABLE CARDS: ", tableCards
             # Ny runde med vedding
             TurnBet()
             # Trekker river-kort
             river = DrawCards(1)
             tableCards.append(river[0])
-            print("TABLE CARDS: ", tableCards)
+            print "TABLE CARDS: ", tableCards
             # Siste runde med vedding
             RiverBet()
             if(not done):
@@ -94,11 +98,11 @@ def InitialBet():
     #f?rst renkser resetter vi alle bids
     ClearBets()
     # Starter med at smallBlind og bigBlind m? vedde
-    print("START INITIAL BET")
+    print "START INITIAL BET"
     global remainingPlayers
-    print("small blind")
+    print "small blind"
     smallBlind.Raise(raiseValue * 0.5)
-    print("big blind")
+    print "big blind"
     #bigBlind.Call()
     bigBlind.Raise(raiseValue * 0.5)
     # Hver spiller m? s? ta fold, call eller raise
@@ -123,7 +127,7 @@ def InitialBet():
         numberOfBettingRounds += 1
         if firstRound:
             firstRound = False
-    print("END INITIAL BET")
+    print "END INITIAL BET"
 
 def FlopBet():
     # Her velger man handling basert p? power rating
@@ -248,7 +252,7 @@ def RiverBet():
                     p.Fold()
         numberOfBettingRounds += 1
     RemoveFolds()
-    print("END RIVER BET")
+    print "END RIVER BET"
 
 def Showdown():
     global remainingPlayers
@@ -264,13 +268,13 @@ def Showdown():
 
         winningHand = cards.calc_cards_power(hand)
         winners.append(remainingPlayers[0])
-        print("Player:", currentWinner.name, winningHand, "          ", currentWinner.cards)
+        print "Player:", currentWinner.name, winningHand, "     ", currentWinner.cards
     for i in range(1,len(remainingPlayers)):
         hand2 = remainingPlayers[i].cards
         #for c in tableCards:
          #   hand2.append(c)
         power2 = cards.calc_cards_power(hand2)
-        print("Player:", remainingPlayers[i].name, power2, "          ", remainingPlayers[i].cards)
+        print "Player:", remainingPlayers[i].name, power2, "        ", remainingPlayers[i].cards
         for j in range(len(power2)):
             if power2[j] > winningHand[j]:
                 currentWinner = remainingPlayers[i]
@@ -281,12 +285,17 @@ def Showdown():
                 break;
             elif j == len(power2):
                 winners.append(remainingPlayers[i])
-    print("Winner(s) after showdown!:")
+    print "Winner(s) after showdown!:"
     for p in winners:
-        print(p.name, cards.calc_cards_power(p.cards), "(prize",pot/len(winners),")", "personality:(",p.personality,")")
+        print p.name, cards.calc_cards_power(p.cards), "(prize",pot/len(winners),")", "personality:(",p.personality,")"
         p.cash += pot/len(winners)
 
-
+def PrintMoney():
+    asd = 0
+    for p in players:
+        print "player",p.name,"has",p.cash,"left"
+        asd += p.cash
+    print "check",  (asd/(len(players)))
 
 def DrawCards(n):
     global deck
@@ -310,7 +319,7 @@ def CheckIfFinished():
     for p in remainingPlayers:
         if p.playing: actualRemainingPlayers.append(p)
     if len(actualRemainingPlayers) == 1:
-        print("THE WINNER IS: " + str(actualRemainingPlayers[0].name))
+        print("THE WINNER IS: " + str(actualRemainingPlayers[0].name) + "(prize" + str(pot) + ")")
         actualRemainingPlayers[0].cash += pot
         done = True
 
@@ -345,7 +354,7 @@ class Player:
     def Fold(self):
         #Kaster spilleren ut av remainingPlayers
         self.playing = False
-        print("player ", self.name, " has folded")
+        print "player ", self.name, " has folded"
         CheckIfFinished()
 
 
@@ -359,8 +368,8 @@ class Player:
         self.cash-=temp
         currentBet += b
         pot += temp
-        print("player " , self.name, " has raised by ", b  )
-        print("the current bet is now at", currentBet,"and the pot is now at",pot)
+        print "player " , self.name, " has raised by ", b
+        print"the current bet is now at", currentBet,"and the pot is now at",pot
 
     def Call(self):
         #?ker bet med s? mye som trengs for at bet skal bli lik currentBet
@@ -368,8 +377,8 @@ class Player:
         self.cash -= (currentBet - self.bet)
         pot += (currentBet - self.bet)
         self.bet = currentBet
-        print("player", self.name , "has called")
-        print("the current pot is now at",pot)
+        print "player", self.name , "has called"
+        print "the current pot is now at",pot
 
     #Finner ut om spilleren skal Raise, Calle eller Folde
     def Assess():
@@ -378,4 +387,4 @@ class Player:
 
 
 if __name__ == '__main__':
-    main(10)
+    main(10,2)
