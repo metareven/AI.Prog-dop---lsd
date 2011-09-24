@@ -389,4 +389,4 @@ class Player:
 
 
 if __name__ == '__main__':
-    main(10,100)
+    main(10,1000)
