@@ -58,14 +58,16 @@ def GeneratePlayers(n):
 def NewRound():
     # Henter en ny kortstokk og starter en ny runde
     #velger ny big blind og small blind
-    global bigBlind,smallBlind,players,remainingPlayers, deck, tableCards,pot
+    global bigBlind,smallBlind,players,remainingPlayers, deck, tableCards,pot,done
     pot = 0
+    done = False
     bigBlind = players[1]
     smallBlind = players[0]
     deck = cards.gen_52_shuffled_cards()
     remainingPlayers = players
     # Trekker kort til alle spillerene
     for p in players:
+        p.playing = True
         p.cards = DrawCards(2)
     # Forste runde med vedding
     InitialBet()
@@ -387,4 +389,4 @@ class Player:
 
 
 if __name__ == '__main__':
-    main(10,2)
+    main(10,100)
