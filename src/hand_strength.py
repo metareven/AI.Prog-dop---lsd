@@ -1,13 +1,19 @@
 import cards
 import itertools
 
-def calculateHandStrength(hand, numberOfOpponents, tableCards numberOfSimulations):
+def calculateHandStrength(hand, numberOfOpponents, tableCards):
     playerHand = hand[:]
     table = tableCards[:]
     numberOfWins = 0
     numberOfTies = 0
     numberOfLosses = 0
-    for simulation in numberOfSimulations:
+    remainingCards = cards.gen_52_cards()
+    for c in hand:
+        remainingCards.remove(c)
+    for c in tableCards:
+        remainingCards.remove(c)
+    remainingHoleCombinations = list(itertools.combinations(remainingCards
+    for  in numberOfSimulations:
         remainingCards = cards.gen_52_shuffled_cards()
         for c in playerHand: 
             remainingCards.remove(c)
@@ -19,8 +25,6 @@ def calculateHandStrength(hand, numberOfOpponents, tableCards numberOfSimulation
             o.append(remainingCards.pop())
             o.append(remainingCards.pop())
             opponents.append(o)
-        for i in range(5 - len(tableCards)):
-            table.append(remainingCards.pop())
         outcome = calculateOutcome(playerHand, table, opponents)
         if outcome == 1:
             numberOfWins += 1
