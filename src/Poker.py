@@ -13,8 +13,8 @@
 import random
 import math
 import cards
-import random
 from collections import deque
+import hand_strength
 
 bigBlind = None
 smallBlind= None
@@ -28,6 +28,8 @@ currentBet = 0
 deck = []
 startingCash = 0
 raiseValue = 100 # Verdien det skal okes med nar man raiser
+estimatorTable = [[[]]]
+raisesThisRound = 0
 
 
 
@@ -289,6 +291,7 @@ def Showdown():
         print p.name, cards.calc_cards_power(p.cards), "(prize",pot/len(winners),")", "personality:(",p.personality,")"
         p.cash += pot/len(winners)
 
+
 def PrintMoney():
     asd = 0
     for p in players:
@@ -331,6 +334,47 @@ def ClearBets():
     currentBet = 0
 
 
+def GenerateTableInfo(player, action):
+    table = []
+    table.append(GenerateContext(player))
+    table.append(action)
+    table.append(list([player.cards[0], player.cards[1]]))
+    table.append(tableCards)
+    table.append(CalculateHandStrength(player))
+
+    #PLACEHOLDER FOR NOW
+def CalculateHandStrength(player):
+    hand_strength.calculateHandStrength([player.cards[0],player.cards[1]], len(remainingPlayers) -1, tableCards)
+
+def GenerateContext(player):
+    i = 0
+    #decides which round we are in
+    if(len(tableCards) == 3):
+        i += 100
+    elif(len(tableCards) == 4):
+        i += 200
+    elif(len(tableCards) == 5):
+        i += 300
+    i += len(remainingPlayers)*10
+    if(player.bet > raiseValue *50):
+        i+= 9
+    elif(player.bet > raiseValue * 30):
+        i +=8
+    elif(player.bet > raiseValue * 20):
+        i += 7
+    elif(player.bet > raiseValue * 10):
+        i += 6
+    elif(player.bet > raiseValue * 8):
+        i += 5
+    elif(player.bet > raiseValue * 6):
+        i+= 4
+    elif(player.bet > raiseValue * 4):
+        i+=3
+    elif(player.bet > raiseValue * 3):
+        i+=2
+    elif(player.bet > raiseValue ):
+        i+= 1
+
 
 
 
@@ -341,6 +385,8 @@ class Player:
     name = 0
     playing = True
     personality = None
+     #The format for the table is as follows: Context, Action, Hole cards shared cards, hand strength
+    contextTable = None
 
     def __init__(self,n, personality):
         self.cards = []
@@ -348,12 +394,14 @@ class Player:
         self.bet = 0
         self.name= n
         self.personality = personality
+        self.contextTable = []
 
 
     def Fold(self):
         #Kaster spilleren ut av remainingPlayers
         self.playing = False
         print "player ", self.name, " has folded"
+        self.contextTable = []
         CheckIfFinished()
 
 
@@ -369,6 +417,7 @@ class Player:
         pot += temp
         print "player " , self.name, " has raised by ", b
         print"the current bet is now at", currentBet,"and the pot is now at",pot
+        contextTable.append(GenerateTableInfo(self,"raise"))
 
     def Call(self):
         #?ker bet med s? mye som trengs for at bet skal bli lik currentBet
@@ -378,6 +427,7 @@ class Player:
         self.bet = currentBet
         print "player", self.name , "has called"
         print "the current pot is now at",pot
+        contextTable.append(GenerateTableInfo(self,"call"))
 
     #Finner ut om spilleren skal Raise, Calle eller Folde
     def Assess():
@@ -386,4 +436,4 @@ class Player:
 
 
 if __name__ == '__main__':
-    main(10,1000)
+    main(10,1)
