@@ -51,7 +51,7 @@ def calculateOutcome(player, opponent):
 
 def getPreFlopTable():
     pre_flop_table = pre_flop_tester.makePreFlopTable()
-    f = open('pre_flop_table_test.txt', 'r')
+    f = open('pre_flop_table_final.txt', 'r')
     for i in range(18):
         players = int(f.readline())
         suited = str(f.readline().strip())
