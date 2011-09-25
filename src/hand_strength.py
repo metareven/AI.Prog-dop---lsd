@@ -50,6 +50,7 @@ def calculateOutcome(player, opponent):
             return 0
 
 def getPreFlopTable():
+    #format: H?yeste kort -2, Laveste kort -2, 0:unsuited 1:suited, spillere -2
     pre_flop_table = pre_flop_tester.makePreFlopTable()
     f = open('pre_flop_table_test.txt', 'r')
     for i in range(18):
@@ -65,5 +66,5 @@ def getPreFlopTable():
                 else:
                     pre_flop_table[j][k][1][players] = probabilities[j][k]
     return pre_flop_table
-        
-        
+
+
