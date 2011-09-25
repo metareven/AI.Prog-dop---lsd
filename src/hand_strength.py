@@ -1,5 +1,6 @@
 import cards
 import itertools
+import pre_flop_tester
 
 # Regner ut hand strength for et gitt par med hullkort,
 # et gitt antall motstandere, og en gitt bunke med delte kort
@@ -47,3 +48,22 @@ def calculateOutcome(player, opponent):
             return -1
         elif i == len(playerPower):
             return 0
+
+def getPreFlopTable():
+    pre_flop_table = pre_flop_tester.makePreFlopTable()
+    f = open('pre_flop_table_test.txt', 'r')
+    for i in range(18):
+        players = int(f.readline())
+        suited = str(f.readline().strip())
+        probabilities = []
+        for foo in range(13):
+            probabilities.append([float(x) for x in f.readline().split()])
+        for j in range(13):
+            for k in range(len(probabilities[j])):
+                if suited == "unsuited":
+                    pre_flop_table[j][k][0][players] = probabilities[j][k]
+                else:
+                    pre_flop_table[j][k][1][players] = probabilities[j][k]
+    return pre_flop_table
+        
+        
