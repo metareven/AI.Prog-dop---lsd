@@ -32,36 +32,48 @@ estimatorTable = []
 raisesThisRound = 0
 numberOfBettingRounds = 0
 firstRound = True
+preFlopTable = None
 
 
 
 def main(pNumber,rounds):
-    print "starting new game with " , pNumber , " players"
-    global blindNumber, startingCash, estimatorTable
+    #print "starting new game with " , pNumber , " players"
+    global blindNumber, startingCash, estimatorTable,preFlopTable
+
+    preFlopTable = hand_strength.getPreFlopTable()
     blindNumber = 0
     startingCash = 10000
     GeneratePlayers(pNumber) #lager spillere
+    currentRound = 0
     for i in range(rounds):
+        print currentRound
         NewRound()
-        PrintMoney()
+        currentround += 1
+    PrintMoney()
 
-    print(estimatorTable)
+    #print(estimatorTable)
 
 
 def GeneratePlayers(n):
     global estimatorTable
-    print ("generating" , n , "players")
+    #print ("generating" , n , "players")
     personalities = ["conservative", "bluffer", "persistent"]
-    types = ["phase1","phase2","phase3"]
+    types = ["phase3","phase3","phase3","phase2","phase2"]
     counter = 0
+    typeCounter = 0
     for i in range(n):
-        if(counter >= len(types)):
+        if(counter >= len(personalities)):
             counter = 0
-        players.append(Player(i,personalities[counter],types[counter]))
+
+        if(typeCounter >= len(types)):
+            typeCounter = 0
+
+        players.append(Player(i,personalities[counter],types[typeCounter]))
         #legger til en liste i estimatorTable for hver person
         estimatorTable.append([])
         #print("Spawned player",i,"with personality",players[i].personality)
         counter += 1
+        typeCounter += 1
 
 
 def NewRound():
@@ -84,20 +96,20 @@ def NewRound():
     if(not done):
         # Trekker flop-kort
        tableCards = DrawCards(3)
-       print "TABLE CARDS: ", tableCards
+       #print "TABLE CARDS: ", tableCards
        # Ny runde med vedding
        FlopBet()
        if(not done):
             # Trekker turn-kort
             flop = DrawCards(1)
             tableCards.append(flop[0])
-            print "TABLE CARDS: ", tableCards
+            #print "TABLE CARDS: ", tableCards
             # Ny runde med vedding
             TurnBet()
             # Trekker river-kort
             river = DrawCards(1)
             tableCards.append(river[0])
-            print "TABLE CARDS: ", tableCards
+            #print "TABLE CARDS: ", tableCards
             # Siste runde med vedding
             RiverBet()
             if(not done):
@@ -113,9 +125,9 @@ def InitialBet():
     # Starter med at smallBlind og bigBlind m? vedde
     print "START INITIAL BET"
     global remainingPlayers, firstRound, numberOfBettingRounds,deck
-    print "small blind"
+    #print "small blind"
     smallBlind.Raise(raiseValue * 0.5)
-    print "big blind"
+    #print "big blind"
 
     bigBlind.Raise(raiseValue * 0.5)
     # Hver spiller m? s? ta fold, call eller raise
@@ -128,14 +140,13 @@ def InitialBet():
         RemoveFolds()
         for p in remainingPlayers:
             if(not done):
-                if(len(p.cards) > 2):
-                    print p.cards, "baluba baluba"
                 p.Assess()
 
         numberOfBettingRounds += 1
         if firstRound:
             firstRound = False
-    print "END INITIAL BET"
+    #print "END INITIAL BET"
+    ResetHandStrenghts()
 
 def FlopBet():
     # Her velger man handling basert p? power rating
@@ -145,17 +156,18 @@ def FlopBet():
     #f?rst renkser resetter vi alle bids
     ClearBets()
 
-    print("START FLOP BET")
+    #print("START FLOP BET")
     numberOfBettingRounds = 0
     global tableCards, remainingPlayers, pot, currentBet
-    print("The pot is currently at",pot)
+    #print("The pot is currently at",pot)
     RemoveFolds()
-    while remainingPlayers and numberOfBettingRounds < 1:
+    while remainingPlayers and numberOfBettingRounds < 2:
         RemoveFolds()
         for p in remainingPlayers:
             p.Assess()
         numberOfBettingRounds += 1
-    print("END FLOP BET")
+    #print("END FLOP BET")
+    ResetHandStrenghts()
 
 def TurnBet():
     #Her velger man handling basert p powerrating akkurat som etter flop
@@ -166,14 +178,15 @@ def TurnBet():
     global tableCards, remainingPlayers, numberOfBettingRounds
     numberOfBettingRounds = 0
     RemoveFolds()
-    while remainingPlayers and numberOfBettingRounds < 1:
+    while remainingPlayers and numberOfBettingRounds < 2:
         RemoveFolds()
 
         for p in remainingPlayers:
             p.Assess()
 
         numberOfBettingRounds += 1
-    print("END TURN BET")
+    #print("END TURN BET")
+    ResetHandStrenghts()
 
 def RiverBet():
     #Her velger man handling basert p powerrating akkurat som etter flop
@@ -184,20 +197,21 @@ def RiverBet():
     numberOfBettingRounds = 0
     global tableCards, remainingPlayers
     RemoveFolds()
-    while remainingPlayers and numberOfBettingRounds < 1:
+    while remainingPlayers and numberOfBettingRounds < 5:
         RemoveFolds()
         for p in remainingPlayers:
 
             p.Assess()
         numberOfBettingRounds += 1
     RemoveFolds()
-    print "END RIVER BET"
+    #print "END RIVER BET"
+    ResetHandStrenghts()
 
 def Showdown():
     global remainingPlayers
     global tableCards, estimatorTable
     print("SHOWDOWN!")
-    print("Remaining players:", len(remainingPlayers))
+    #print("Remaining players:", len(remainingPlayers))
     winners = []
     for a in remainingPlayers:
         estimatorTable[a.name].append(a.contextTable)
@@ -207,13 +221,13 @@ def Showdown():
         hand = currentWinner.cards
         winningHand = cards.calc_cards_power(currentWinner.cards)
         winners.append(remainingPlayers[0])
-        print "Player:", currentWinner.name, winningHand, "     ", currentWinner.cards
+        #print "Player:", currentWinner.name, winningHand, "     ", currentWinner.cards
 
     for i in range(1,len(remainingPlayers)):
         hand2 = remainingPlayers[i].cards
 
         power2 = cards.calc_cards_power(hand2)
-        print "Player:", remainingPlayers[i].name, power2, "        ", remainingPlayers[i].cards
+        #print "Player:", remainingPlayers[i].name, power2, "        ", remainingPlayers[i].cards
         for j in range(len(power2)):
             if power2[j] > winningHand[j]:
                 currentWinner = remainingPlayers[i]
@@ -229,13 +243,16 @@ def Showdown():
         print p.name, cards.calc_cards_power(p.cards), "(prize",pot/len(winners),")", "personality:(",p.personality,")","type:(",p.type,")"
         p.cash += pot/len(winners)
 
+def ResetHandStrenghts():
+    for p in players:
+        p.handStrength = 0
 
 def PrintMoney():
     asd = 0
     for p in players:
         print "player",p.name,"(",p.personality,")","(",p.type,")","has",p.cash,"left"
         asd += p.cash
-    print "check",  (asd/(len(players)))
+    #print "check",  (asd/(len(players)))
 
 def DrawCards(n):
     global deck
@@ -251,7 +268,7 @@ def RemoveFolds():
     for p in remainingPlayers:
         if not p.playing:
             temp.remove(p)
-    remainingPlayers = temp
+    remainingPlayers = deque(temp)
 
 def CheckIfFinished():
     global remainingPlayers, pot,done
@@ -259,7 +276,7 @@ def CheckIfFinished():
     for p in remainingPlayers:
         if p.playing: actualRemainingPlayers.append(p)
     if len(actualRemainingPlayers) == 1:
-        print("THE WINNER IS: " + str(actualRemainingPlayers[0].name) + "(prize" + str(pot) + ")")
+        #print("THE WINNER IS: " + str(actualRemainingPlayers[0].name) + "(prize" + str(pot) + ")")
         actualRemainingPlayers[0].cash += pot
         done = True
 
@@ -282,7 +299,7 @@ def GenerateTableInfo(player, action):
     return table
 
 def CalculateHandStrength(player):
-    print player.cards
+    #print player.cards
     return hand_strength.calculateHandStrength(player.cards, len(remainingPlayers) -1, tableCards)
     #return 0
 
@@ -330,6 +347,7 @@ class Player:
     lastAction = None
      #The format for the table is as follows: Context, Action, Hole cards shared cards, hand strength
     contextTable = []
+    handStrength = 0
 
     def __init__(self,n, personality, type):
         self.cards = []
@@ -344,7 +362,7 @@ class Player:
     def Fold(self):
         #Kaster spilleren ut av remainingPlayers
         self.playing = False
-        print "player ", self.name, " has folded"
+        #print "player ", self.name, " has folded"
         self.contextTable = []
         CheckIfFinished()
 
@@ -359,8 +377,8 @@ class Player:
         self.cash-=temp
         currentBet += b
         pot += temp
-        print "player " , self.name,"type:",self.type, "has raised by ", b
-        print"the current bet is now at", currentBet,"and the pot is now at",pot
+        #print "player " , self.name,"type:",self.type, "has raised by ", b
+        #print"the current bet is now at", currentBet,"and the pot is now at",pot
         self.contextTable.append(GenerateTableInfo(self,"raise"))
         self.lastAction = "raise"
 
@@ -370,159 +388,210 @@ class Player:
         self.cash -= (currentBet - self.bet)
         pot += (currentBet - self.bet)
         self.bet = currentBet
-        print "player", self.name ,"type:",self.type, "has called"
-        print "the current pot is now at",pot
+        #print "player", self.name ,"type:",self.type, "has called"
+        #print "the current pot is now at",pot
         self.contextTable.append(GenerateTableInfo(self,"call"))
         self.lastAction = "call"
 
     #Finner ut om spilleren skal Raise, Calle eller Folde
     def Assess(self):
 
-
         if(self.type == "phase1"):
 
-            if (self != smallBlind or not firstRound) and (self != bigBlind or not firstRound):
-                    i = random.randint(0,2)
-                    if i == 0:
-                        self.Fold()
-
-                    elif i == 1:
-                        self.Raise(raiseValue)
-
-                    else:
-                        self.Call()
+            if(len(tableCards) == 0):
+                pass
             else:
-                cashmult = 1
-                powertol = 1
-                if(self.personality == "conservative"):
-                    cashmult = 2
-                    powertol = 2
-                elif(self.personality == "bluffer"):
-                    cashmult = 4
-                    powertol = 0
-                elif(self.personality == "persistent"):
-                    cashmult = 99
-                    powertol = 2
 
-                if(not done):
-                    hand = list([self.cards[0], self.cards[1]])
-                    for card in tableCards:
-                        hand.append(card)
-                    self.cards = hand
-                    power = cards.calc_cards_power(hand)[0]
-                    if power > powertol and self.bet < cashmult*raiseValue:
-                        self.Raise(raiseValue)
-                    elif power > ((powertol/2) and self.bet < (cashmult/2)*raiseValue) or self.bet == currentBet:
-                        self.Call()
-                    else:
-                        self.Fold()
+
+                if (self != smallBlind or not firstRound) and (self != bigBlind or not firstRound):
+                        i = random.randint(0,2)
+                        if i == 0:
+                            self.Fold()
+
+                        elif i == 1:
+                            self.Raise(raiseValue)
+
+                        else:
+                            self.Call()
+
+                else:
+                    cashmult = 1
+                    powertol = 1
+                    if(self.personality == "conservative"):
+                        cashmult = 2
+                        powertol = 2
+                    elif(self.personality == "bluffer"):
+                        cashmult = 4
+                        powertol = 0
+                    elif(self.personality == "persistent"):
+                        cashmult = 99
+                        powertol = 2
+
+                    if(not done):
+                        temp = []
+                        temp.append(self.cards[0])
+                        temp.append(self.cards[1])
+                        for card in tableCards:
+                            temp.append(card)
+                        hand = list(temp)
+                        #self.cards = list(hand)
+                        power = cards.calc_cards_power(hand)[0]
+                        if power > powertol and self.bet < cashmult*raiseValue:
+                            self.Raise(raiseValue)
+                        elif power > ((powertol/2) and self.bet < (cashmult/2)*raiseValue) or self.bet == currentBet:
+                            self.Call()
+                        else:
+                            self.Fold()
+
 
         elif(self.type == "phase2"):
 
-            ownStrength = hand_strength.calculateHandStrength([self.cards[0],self.cards[1]], len(remainingPlayers) -1, tableCards)
+            if len(tableCards) == 0:
+                high = None
+                low = None
+                suit = None
+                if self.cards[0][0] > self.cards[1][0]:
+                    high = self.cards[0][0]
+                    low = self.cards[1][0]
+                else:
+                    high = self.cards[1][0]
+                    low = self.cards[0][0]
+
+                if self.cards[0][1] == self.cards[1][1]:
+                    suit = 1
+                else:
+                    suit = 0
+                if(self.handStrength == 0):
+                    self.handStrength = preFlopTable[high -2][low -2][suit][len(players) -2] *2
+
+            else:
+                if(self.handStrength == 0):
+                    self.handStrength = CalculateHandStrength(self)
             #raiser med bra kort, men raiser ikke med for mye
             if self.personality == "conservative":
-                if(ownStrength > 0.6):
+                if(self.handStrength > 0.6):
                     if self.bet < raiseValue * 2:
-                        self.Raise()
+                        self.Raise(raiseValue)
                     else:
                         self.Call()
-                elif((ownStrength >0.45 and self.bet < raiseValue * 2) or self.bet == currentBet):
+                elif((self.handStrength >0.45 and self.bet < raiseValue * 2) or self.bet == currentBet):
                     self.Call()
                 else:
                     self.Fold()
 
             elif self.personality == "bluffer":
-                if(ownStrength > 0.5):
-                    if self.bet < raiseValue * 10:
-                        self.Raise(raiseValue)
-                    else:
+                    if(self.handStrength > 0.5):
+                        if self.bet < raiseValue * 10:
+                            self.Raise(raiseValue)
+                        else:
+                            self.Call()
+                    elif(self.handStrength > (1/len(remainingPlayers)) or self.bet == currentBet):
                         self.Call()
-                elif(ownStrength > (1/len(remainingPlayers)) or self.bet == currentBet):
-                    self.Call()
-                else:
-                    self.Fold()
+                    else:
+                        self.Fold()
 
             elif self.personality == "persistent":
-                if(ownStrength > 0.6):
-                    if self.bet < raiseValue * 20:
-                        self.Raise(raiseValue)
-                    else:
+                    if(self.handStrength > 0.6):
+                        if self.bet < raiseValue * 20:
+                            self.Raise(raiseValue)
+                        else:
+                            self.Call()
+                    elif(self.handStrength >(1/len(remainingPlayers)) or self.bet == currentBet):
                         self.Call()
-                elif(ownStrength >(1/len(remainingPlayers)) or self.bet == currentBet):
-                    self.Call()
-                else:
-                    self.Fold()
+                    else:
+                        self.Fold()
 
 
         elif(self.type == "phase3"):
 
-            ownStrength = hand_strength.calculateHandStrength([self.cards[0],self.cards[1]], len(remainingPlayers) -1, tableCards)
+            if(len(tableCards) == 0):
+                high = None
+                low = None
+                suit = None
+                if self.cards[0][0] > self.cards[1][0]:
+                    high = self.cards[0][0]
+                    low = self.cards[1][0]
+                else:
+                    high = self.cards[1][0]
+                    low = self.cards[0][0]
+
+                if self.cards[0][1] == self.cards[1][1]:
+                    suit = 1
+                else:
+                    suit = 0
+                if(self.handStrength == 0):
+                    self.handStrength = preFlopTable[high -2][low -2][suit][len(players) -2] * 2
+
+            else:
+                if(self.handStrength == 0):
+                    self.handStrength = CalculateHandStrength(self)
+                #ownStrength = hand_strength.calculateHandStrength([self.cards[0],self.cards[1]], len(remainingPlayers) -1, tableCards)
             guess = self.GuessHand()
+
             shouldRaise = False
             shouldCall = True
             shouldFold = False
             if self.personality == "conservative":
-                for g in guess:
-                    if g > ownStrength:
-                        shouldFold = True
-                        shouldRaise = False
-                        break
-                    elif ownstrength-0.1 > g:
-                        Raise = True
-                if(shouldRaise):
-                    if(self.bet < raiseValue * 3):
-                        self.Raise(raiseValue)
-                    else:
+                    for g in guess:
+                        if g > self.handStrength:
+                            shouldFold = True
+                            shouldRaise = False
+                            break
+                        elif self.handStrength-0.1 > g:
+                            Raise = True
+                    if(shouldRaise):
+                        if(self.bet < raiseValue * 3):
+                            self.Raise(raiseValue)
+                        else:
+                            self.Call()
+                    elif(shouldCall or self.bet == currentBet):
                         self.Call()
-                elif(shouldCall or self.bet == currentBet):
-                    self.Call()
-                elif(shouldFold):
-                    self.Fold()
+                    elif(shouldFold):
+                        self.Fold()
 
             elif self.personality == "persistent":
-                counter = 0
-                for g in guess:
-                    if g > ownStrength:
-                        counter += 1
-                if(counter > len(remainingPlayers)/3):
-                    shouldFold = True
-                    shouldCall = False
-                elif counter == 0:
-                    shouldRaise = True
-                    shouldCall = False
+                    counter = 0
+                    for g in guess:
+                        if g > self.handStrength:
+                            counter += 1
+                    if(counter > len(remainingPlayers)/3):
+                        shouldFold = True
+                        shouldCall = False
+                    elif counter == 0:
+                        shouldRaise = True
+                        shouldCall = False
 
-                if(shouldRaise):
-                    if(self.bet < 20*raiseValue):
-                        self.Raise(raiseValue)
+                    if(shouldRaise):
+                        if(self.bet < 20*raiseValue):
+                            self.Raise(raiseValue)
+                        else:
+                            self.Call()
+                    elif (shouldCall or self.bet == currentBet):
+                        self.call
                     else:
-                        self.Call()
-                elif (shouldCall or self.bet == currentBet):
-                    self.call
-                else:
-                    self.Fold()
+                        self.Fold()
 
             elif self.personality == "bluffer":
-                counter = 0
-                for g in guess:
-                    if g -0.1> ownStrength:
-                        counter += 1
-                if(counter > len(remainingPlayers)/2):
-                    shouldFold = True
-                    shouldCall = False
-                elif counter < 2:
-                    shouldRaise = True
-                    shouldCall = False
+                    counter = 0
+                    for g in guess:
+                        if g -0.1> self.handStrength:
+                            counter += 1
+                    if(counter > len(remainingPlayers)/2):
+                        shouldFold = True
+                        shouldCall = False
+                    elif counter < 2:
+                        shouldRaise = True
+                        shouldCall = False
 
-                if(shouldRaise):
-                    if(self.bet < 10*raiseValue):
-                        self.Raise(raiseValue)
-                    else:
+                    if(shouldRaise):
+                        if(self.bet < 10*raiseValue):
+                            self.Raise(raiseValue)
+                        else:
+                            self.Call()
+                    elif (shouldCall or self.bet == currentBet):
                         self.Call()
-                elif (shouldCall or self.bet == currentBet):
-                    self.call
-                else:
-                    self.Fold()
+                    else:
+                        self.Fold()
 
 
 
@@ -564,4 +633,4 @@ class Player:
 
 
 if __name__ == '__main__':
-    main(10,10)
+    main(5,1000)
