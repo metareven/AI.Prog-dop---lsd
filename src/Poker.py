@@ -55,16 +55,22 @@ def GeneratePlayers(n):
     global estimatorTable
     #print ("generating" , n , "players")
     personalities = ["conservative", "bluffer", "persistent"]
-    types = ["phase1","phase2","phase3"]
+    types = ["phase3","phase3","phase3","phase2","phase2"]
     counter = 0
+    typeCounter = 0
     for i in range(n):
-        if(counter >= len(types)):
+        if(counter >= len(personalities)):
             counter = 0
-        players.append(Player(i,personalities[counter],types[counter]))
+
+        if(typeCounter >= len(types)):
+            typeCounter = 0
+
+        players.append(Player(i,personalities[counter],types[typeCounter]))
         #legger til en liste i estimatorTable for hver person
         estimatorTable.append([])
         #print("Spawned player",i,"with personality",players[i].personality)
         counter += 1
+        typeCounter += 1
 
 
 def NewRound():
@@ -114,7 +120,7 @@ def InitialBet():
     ClearBets()
 
     # Starter med at smallBlind og bigBlind m? vedde
-    #print "START INITIAL BET"
+    print "START INITIAL BET"
     global remainingPlayers, firstRound, numberOfBettingRounds,deck
     #print "small blind"
     smallBlind.Raise(raiseValue * 0.5)
@@ -156,7 +162,7 @@ def FlopBet():
     global tableCards, remainingPlayers, pot, currentBet
     #print("The pot is currently at",pot)
     RemoveFolds()
-    while remainingPlayers and numberOfBettingRounds < 1:
+    while remainingPlayers and numberOfBettingRounds < 2:
         RemoveFolds()
         for p in remainingPlayers:
             p.Assess()
@@ -168,11 +174,11 @@ def TurnBet():
     #f?rst renkser resetter vi alle bids
     ClearBets()
 
-    #print("START TURN BET")
+    print("START TURN BET")
     global tableCards, remainingPlayers, numberOfBettingRounds
     numberOfBettingRounds = 0
     RemoveFolds()
-    while remainingPlayers and numberOfBettingRounds < 1:
+    while remainingPlayers and numberOfBettingRounds < 2:
         RemoveFolds()
 
         for p in remainingPlayers:
@@ -186,11 +192,11 @@ def RiverBet():
     #f?rst renkser resetter vi alle bids
     ClearBets()
 
-    #print("START RIVER BET")
+    print("START RIVER BET")
     numberOfBettingRounds = 0
     global tableCards, remainingPlayers
     RemoveFolds()
-    while remainingPlayers and numberOfBettingRounds < 1:
+    while remainingPlayers and numberOfBettingRounds < 5:
         RemoveFolds()
         for p in remainingPlayers:
 
@@ -202,7 +208,7 @@ def RiverBet():
 def Showdown():
     global remainingPlayers
     global tableCards, estimatorTable
-    #print("SHOWDOWN!")
+    print("SHOWDOWN!")
     #print("Remaining players:", len(remainingPlayers))
     winners = []
     for a in remainingPlayers:
@@ -230,9 +236,9 @@ def Showdown():
                 break;
             elif j == len(power2):
                 winners.append(remainingPlayers[i])
-    #print "Winner(s) after showdown!:"
+    print "Winner(s) after showdown!:"
     for p in winners:
-        #print p.name, cards.calc_cards_power(p.cards), "(prize",pot/len(winners),")", "personality:(",p.personality,")","type:(",p.type,")"
+        print p.name, cards.calc_cards_power(p.cards), "(prize",pot/len(winners),")", "personality:(",p.personality,")","type:(",p.type,")"
         p.cash += pot/len(winners)
 
 
@@ -384,6 +390,8 @@ class Player:
     #Finner ut om spilleren skal Raise, Calle eller Folde
     def Assess(self):
 
+        ownStrength = 0
+
 
         if(self.type == "phase1"):
 
@@ -454,7 +462,7 @@ class Player:
 
             else:
 
-                ownStrength = hand_strength.calculateHandStrength([self.cards[0],self.cards[1]], len(remainingPlayers) -1, tableCards)
+                ownStrength = CalculateHandStrength(self)
             #raiser med bra kort, men raiser ikke med for mye
             if self.personality == "conservative":
                 if(ownStrength > 0.6):
@@ -512,7 +520,8 @@ class Player:
 
             else:
 
-                ownStrength = hand_strength.calculateHandStrength([self.cards[0],self.cards[1]], len(remainingPlayers) -1, tableCards)
+                ownStrength = CalculateHandStrength(self)
+                #ownStrength = hand_strength.calculateHandStrength([self.cards[0],self.cards[1]], len(remainingPlayers) -1, tableCards)
             guess = self.GuessHand()
             shouldRaise = False
             shouldCall = True
@@ -523,7 +532,7 @@ class Player:
                             shouldFold = True
                             shouldRaise = False
                             break
-                        elif ownstrength-0.1 > g:
+                        elif ownStrength-0.1 > g:
                             Raise = True
                     if(shouldRaise):
                         if(self.bet < raiseValue * 3):
@@ -575,7 +584,7 @@ class Player:
                         else:
                             self.Call()
                     elif (shouldCall or self.bet == currentBet):
-                        self.call
+                        self.Call()
                     else:
                         self.Fold()
 
@@ -619,4 +628,4 @@ class Player:
 
 
 if __name__ == '__main__':
-    main(10,5)
+    main(5,1000)
