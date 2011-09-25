@@ -74,11 +74,10 @@ def NewRound():
     bigBlind = players[1]
     smallBlind = players[0]
     deck = cards.gen_52_shuffled_cards()
-    remainingPlayers = players
+    remainingPlayers = deque(players)
     # Trekker kort til alle spillerene
     for p in players:
         p.playing = True
-        p.cards = []
         p.cards = DrawCards(2)
     # Forste runde med vedding
     InitialBet()
@@ -110,9 +109,10 @@ def NewRound():
 def InitialBet():
     #f?rst renkser resetter vi alle bids
     ClearBets()
+
     # Starter med at smallBlind og bigBlind m? vedde
     print "START INITIAL BET"
-    global remainingPlayers, firstRound, numberOfBettingRounds
+    global remainingPlayers, firstRound, numberOfBettingRounds,deck
     print "small blind"
     smallBlind.Raise(raiseValue * 0.5)
     print "big blind"
@@ -122,13 +122,14 @@ def InitialBet():
     # Det er her helt tilfeldig hva de gj?r
     firstRound = True # Brukes for aa soerge for at smallBlind og bigBlind ikke vedder 2 ganger den foerste runden
     numberOfBettingRounds = 0
+    deck = cards.gen_52_shuffled_cards()
+
     while remainingPlayers and numberOfBettingRounds < 2:
         RemoveFolds()
         for p in remainingPlayers:
             if(not done):
                 if(len(p.cards) > 2):
-                    print p.cards
-                    raise Exception
+                    print p.cards, "baluba baluba"
                 p.Assess()
 
         numberOfBettingRounds += 1
@@ -232,7 +233,7 @@ def Showdown():
 def PrintMoney():
     asd = 0
     for p in players:
-        print "player",p.name,"(",p.personality,")","has",p.cash,"left"
+        print "player",p.name,"(",p.personality,")","(",p.type,")","has",p.cash,"left"
         asd += p.cash
     print "check",  (asd/(len(players)))
 
@@ -275,7 +276,7 @@ def GenerateTableInfo(player, action):
     table = []
     table.append(GenerateContext(player))
     table.append(action)
-    table.append(list([player.cards[0], player.cards[1]]))
+    table.append([player.cards[0], player.cards[1]])
     table.append(tableCards)
     table.append(CalculateHandStrength(player))
     return table
@@ -358,7 +359,7 @@ class Player:
         self.cash-=temp
         currentBet += b
         pot += temp
-        print "player " , self.name, " has raised by ", b
+        print "player " , self.name,"type:",self.type, "has raised by ", b
         print"the current bet is now at", currentBet,"and the pot is now at",pot
         self.contextTable.append(GenerateTableInfo(self,"raise"))
         self.lastAction = "raise"
@@ -369,7 +370,7 @@ class Player:
         self.cash -= (currentBet - self.bet)
         pot += (currentBet - self.bet)
         self.bet = currentBet
-        print "player", self.name , "has called"
+        print "player", self.name ,"type:",self.type, "has called"
         print "the current pot is now at",pot
         self.contextTable.append(GenerateTableInfo(self,"call"))
         self.lastAction = "call"
@@ -390,30 +391,31 @@ class Player:
 
                     else:
                         self.Call()
-            cashmult = 1
-            powertol = 1
-            if(self.personality == "conservative"):
-                cashmult = 2
-                powertol = 2
-            elif(self.personality == "bluffer"):
-                cashmult = 4
-                powertol = 0
-            elif(self.personality == "persistent"):
-                cashmult = 99
-                powertol = 2
+            else:
+                cashmult = 1
+                powertol = 1
+                if(self.personality == "conservative"):
+                    cashmult = 2
+                    powertol = 2
+                elif(self.personality == "bluffer"):
+                    cashmult = 4
+                    powertol = 0
+                elif(self.personality == "persistent"):
+                    cashmult = 99
+                    powertol = 2
 
-            if(not done):
-                hand = list([self.cards[0], self.cards[1]])
-                for card in tableCards:
-                    hand.append(card)
-                self.cards = hand
-                power = cards.calc_cards_power(hand)[0]
-                if power > powertol and self.bet < cashmult*raiseValue:
-                    self.Raise(raiseValue)
-                elif power > ((powertol/2) and self.bet < (cashmult/2)*raiseValue) or self.bet == currentBet:
-                    self.Call()
-                else:
-                    self.Fold()
+                if(not done):
+                    hand = list([self.cards[0], self.cards[1]])
+                    for card in tableCards:
+                        hand.append(card)
+                    self.cards = hand
+                    power = cards.calc_cards_power(hand)[0]
+                    if power > powertol and self.bet < cashmult*raiseValue:
+                        self.Raise(raiseValue)
+                    elif power > ((powertol/2) and self.bet < (cashmult/2)*raiseValue) or self.bet == currentBet:
+                        self.Call()
+                    else:
+                        self.Fold()
 
         elif(self.type == "phase2"):
 
@@ -562,4 +564,4 @@ class Player:
 
 
 if __name__ == '__main__':
-    main(10,3)
+    main(10,10)
