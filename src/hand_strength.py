@@ -1,8 +1,9 @@
 import cards
 import itertools
 
+# Regner ut hand strength for et gitt par med hullkort,
+# et gitt antall motstandere, og en gitt bunke med delte kort
 def calculateHandStrength(hand, numberOfOpponents, tableCards):
-    playerHand = hand[:]
     table = tableCards[:]
     numberOfWins = 0
     numberOfTies = 0
@@ -12,63 +13,37 @@ def calculateHandStrength(hand, numberOfOpponents, tableCards):
         remainingCards.remove(c)
     for c in tableCards:
         remainingCards.remove(c)
-    remainingHoleCombinations = list(itertools.combinations(remainingCards
-    for  in numberOfSimulations:
-        remainingCards = cards.gen_52_shuffled_cards()
-        for c in playerHand: 
-            remainingCards.remove(c)
-        for c in table: 
-            remainingCards.remove(c)
-        opponents = []
-        for foo in numberOfOpponents:
-            o = []
-            o.append(remainingCards.pop())
-            o.append(remainingCards.pop())
-            opponents.append(o)
-        outcome = calculateOutcome(playerHand, table, opponents)
+    remainingHoleCombinations = list(itertools.combinations(remainingCards, 2)) # Her lages alle mulige par med hullkort motstanderne kan ha
+    for comb in remainingHoleCombinations:
+        playerHand = hand[:]
+        combination = list(comb)
+        for card in tableCards:
+            playerHand.append(card)
+            combination.append(card)
+        outcome = calculateOutcome(playerHand, combination)
         if outcome == 1:
             numberOfWins += 1
         elif outcome == 0:
             numberOfTies += 1
         else:
             numberOfLosses += 1
-    base_strength = float(float(float(numberOfWins) + float(float(numberOfTies)/float(2))) / float(numberOfSimulations))
+    # Base strength = (#Wins + 0.5#Ties) / (#Wins + #Ties #Losses)
+    base_strength = float(float(float(numberOfWins) + float(float(numberOfTies)/float(2))) / float(float(numberOfWins + float(numberOfTies) + float(numberOfLosses))))
+    # Hand strength = base_strength opphoyd i antall spillere
     hand_strength = float(1)
     for i in range(numberOfOpponents):
         hand_strength = hand_strength * base_strength
     return hand_strength
-    
-        
-        
 
 
-def calculateOutcome(player, tableCards, opponents):
-    winners = []
-    currentWinner = player
-    hand = player[:]
-    for c in tableCards:
-        hand.append(c)
-    winningHand = cards.calc_cards_power(hand)
-    winners.append(hand)
-    for o in opponents:
-        ny_hand = o[:]
-        for c in tableCards:
-            ny_hand.append(c)
-        power = cards.calc_cards_power(ny_hand)
-        for i in range(len(power)):
-            if power[i] > winningHand[i]:
-                currentWinner = ny_hand
-                winningHand = power
-                winners = [currentWinner]
-                break
-            elif power[i] < winningHand[i]:
-                break
-            elif i == len(power):
-                winners.append(ny_hand)
-    if not hand in winners:
-        return -1
-    elif len(winners) == 1:
-        return 1
-    else:
-        return 0
-    
+# Her regnes det ut hvem som har best hand av player og opponent
+def calculateOutcome(player, opponent):
+    playerPower = cards.calc_cards_power(player)
+    opponentPower = cards.calc_cards_power(opponent)
+    for i in range(len(playerPower)):
+        if playerPower[i] > opponentPower[i]:
+            return 1
+        elif playerPower[i] < opponentPower[i]:
+            return -1
+        elif i == len(playerPower):
+            return 0            
