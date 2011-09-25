@@ -44,8 +44,11 @@ def main(pNumber,rounds):
     blindNumber = 0
     startingCash = 10000
     GeneratePlayers(pNumber) #lager spillere
+    currentRound = 0
     for i in range(rounds):
+        print currentRound
         NewRound()
+        currentround += 1
     PrintMoney()
 
     #print(estimatorTable)
