@@ -86,6 +86,7 @@ def NewRound():
     done = False
     bigBlind = players[1]
     smallBlind = players[0]
+    tableCards = []
     deck = cards.gen_52_shuffled_cards()
     remainingPlayers = deque(players)
     # Trekker kort til alle spillerene
@@ -102,7 +103,7 @@ def NewRound():
        FlopBet()
        if(not done):
             # Trekker turn-kort
-            flop = DrawCards(1)
+            flop = list(DrawCards(1))
             tableCards.append(flop[0])
             #print "TABLE CARDS: ", tableCards
             # Ny runde med vedding
@@ -135,7 +136,7 @@ def InitialBet():
     # Det er her helt tilfeldig hva de gj?r
     firstRound = True # Brukes for aa soerge for at smallBlind og bigBlind ikke vedder 2 ganger den foerste runden
     numberOfBettingRounds = 0
-    deck = cards.gen_52_shuffled_cards()
+    #deck = cards.gen_52_shuffled_cards()
 
     while remainingPlayers and numberOfBettingRounds < 4:
         RemoveFolds()
@@ -220,29 +221,36 @@ def Showdown():
 
     if len(remainingPlayers) > 0:
         currentWinner = remainingPlayers[0]
-        hand = currentWinner.cards
-        winningHand = cards.calc_cards_power(currentWinner.cards)
+        #hand = currentWinner.cards
+        hand = list(tableCards)
+        hand.append(currentWinner.cards[0])
+        hand.append(currentWinner.cards[1])
+
+        winningHand = cards.calc_cards_power(hand)
         winners.append(remainingPlayers[0])
         #print "Player:", currentWinner.name, winningHand, "     ", currentWinner.cards
 
     for i in range(1,len(remainingPlayers)):
-        hand2 = remainingPlayers[i].cards
+        #hand2 = remainingPlayers[i].cards
+        hand2 = list(tableCards)
+        hand2.append(remainingPlayers[i].cards[0])
+        hand2.append(remainingPlayers[i].cards[1])
 
         power2 = cards.calc_cards_power(hand2)
         #print "Player:", remainingPlayers[i].name, power2, "        ", remainingPlayers[i].cards
         for j in range(len(power2)):
             if power2[j] > winningHand[j]:
                 currentWinner = remainingPlayers[i]
-                winningHand = cards.calc_cards_power(remainingPlayers[i].cards)
+                winningHand = power2
                 winners = [currentWinner]
                 break
             elif power2[j] < winningHand[j]:
                 break;
-            elif j == len(power2):
+            elif j == len(power2)-1:
                 winners.append(remainingPlayers[i])
     print "Winner(s) after showdown!:"
     for p in winners:
-        print p.name, cards.calc_cards_power(p.cards), "(prize",pot/len(winners),")", "personality:(",p.personality,")","type:(",p.type,")"
+        print p.name, winningHand, "(prize",pot/len(winners),")", "personality:(",p.personality,")","type:(",p.type,")"
         p.cash += pot/len(winners)
 
 def ResetHandStrenghts():
@@ -259,6 +267,7 @@ def PrintMoney():
 def DrawCards(n):
     global deck
     c = []
+    asd = [1,2,3]
     for i in range(n):
         card = deck.pop()
         c.append(card)
@@ -302,7 +311,6 @@ def GenerateTableInfo(player, action):
     return table
 
 def CalculateHandStrength(player):
-    #print player.cards
     return hand_strength.calculateHandStrength(player.cards, len(remainingPlayers) -1, tableCards)
     #return 0
 
