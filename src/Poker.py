@@ -660,4 +660,4 @@ class Player:
 
 
 if __name__ == '__main__':
-    main(5,10)
+    main(5,1000)
