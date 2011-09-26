@@ -49,6 +49,7 @@ def main(pNumber,rounds):
         print currentRound
         NewRound()
         currentRound += 1
+        #print(estimatorTable)
     PrintMoney()
 
     #print(estimatorTable)
@@ -313,6 +314,7 @@ def GenerateContext(player):
     elif(len(tableCards) == 5):
         i += 300
     i += len(remainingPlayers)*10
+    """
     if(player.bet > raiseValue *50):
         i+= 9
     elif(player.bet > raiseValue * 30):
@@ -331,6 +333,7 @@ def GenerateContext(player):
         i+=2
     elif(player.bet > raiseValue ):
         i+= 1
+        """
     return i
 
 
@@ -567,14 +570,14 @@ class Player:
                         else:
                             self.Call()
                     elif (shouldCall or self.bet == currentBet):
-                        self.call
+                        self.Call()
                     else:
                         self.Fold()
 
             elif self.personality == "bluffer":
                     counter = 0
                     for g in guess:
-                        if g -0.1> self.handStrength:
+                        if g > self.handStrength:
                             counter += 1
                     if(counter > len(remainingPlayers)/2):
                         shouldFold = True
@@ -607,22 +610,35 @@ class Player:
 
     def GuessHand(self):
         guesses = []
+
         for p in remainingPlayers:
+
             if ( not p == self):
+
                 temptable = estimatorTable[p.name]
                 currentContext = GenerateContext(p)
                 table = []
-                strength = 0
+                strength = 0.0
                 for e in temptable:
                     if(e[0] == currentContext):
+                        print e[1]
                         if(e[1] == p.lastAction):
                             table.append(e)
+                            print "test"
                 for ex in table:
                     strength += ex[4]
                 if(len(table) > 0):
                     strength = strength/len(table)
                 guesses.append(strength)
-        return guesses
+        realGuesses = []
+        for g in guesses:
+            if not g == 0:
+                realGuesses.append(g)
+            else:
+                realGuesses.append(1.0/len(remainingPlayers))
+
+        #print realGuesses
+        return realGuesses
 
 
 
