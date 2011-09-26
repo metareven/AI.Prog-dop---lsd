@@ -12,8 +12,8 @@ def calculateHandStrength(hand, numberOfOpponents, tableCards):
     remainingCards = cards.gen_52_cards()
     for c in hand:
         remainingCards.remove(c)
-    #for c in tableCards:
-        #remainingCards.remove(c)
+    for c in tableCards:
+        remainingCards.remove(c)
     remainingHoleCombinations = list(itertools.combinations(remainingCards, 2)) # Her lages alle mulige par med hullkort motstanderne kan ha
     for comb in remainingHoleCombinations:
         playerHand = hand[:]
