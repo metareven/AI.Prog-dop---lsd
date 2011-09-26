@@ -215,7 +215,8 @@ def Showdown():
     #print("Remaining players:", len(remainingPlayers))
     winners = []
     for a in remainingPlayers:
-        estimatorTable[a.name].append(a.contextTable)
+        #estimatorTable[a.name].append(a.contextTable)
+        estimatorTable[a.name] = a.contextTable
 
     if len(remainingPlayers) > 0:
         currentWinner = remainingPlayers[0]
@@ -297,6 +298,7 @@ def GenerateTableInfo(player, action):
     table.append([player.cards[0], player.cards[1]])
     table.append(tableCards)
     table.append(CalculateHandStrength(player))
+    table.append(player.name)
     return table
 
 def CalculateHandStrength(player):
@@ -366,7 +368,7 @@ class Player:
         #Kaster spilleren ut av remainingPlayers
         self.playing = False
         #print "player ", self.name, " has folded"
-        self.contextTable = []
+        #self.contextTable = []
         CheckIfFinished()
 
 
@@ -620,11 +622,12 @@ class Player:
                 table = []
                 strength = 0.0
                 for e in temptable:
+                    #print e
                     if(e[0] == currentContext):
-                        print e[1]
+                        #print e[1]
                         if(e[1] == p.lastAction):
                             table.append(e)
-                            print "test"
+                            #print "test"
                 for ex in table:
                     strength += ex[4]
                 if(len(table) > 0):
@@ -635,7 +638,7 @@ class Player:
             if not g == 0:
                 realGuesses.append(g)
             else:
-                realGuesses.append(1.0/len(remainingPlayers))
+                realGuesses.append(1.0/len(players))
 
         #print realGuesses
         return realGuesses
