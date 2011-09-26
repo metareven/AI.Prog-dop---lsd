@@ -48,7 +48,7 @@ def main(pNumber,rounds):
     for i in range(rounds):
         print currentRound
         NewRound()
-        currentround += 1
+        currentRound += 1
     PrintMoney()
 
     #print(estimatorTable)
@@ -136,7 +136,7 @@ def InitialBet():
     numberOfBettingRounds = 0
     deck = cards.gen_52_shuffled_cards()
 
-    while remainingPlayers and numberOfBettingRounds < 2:
+    while remainingPlayers and numberOfBettingRounds < 4:
         RemoveFolds()
         for p in remainingPlayers:
             if(not done):
@@ -161,7 +161,7 @@ def FlopBet():
     global tableCards, remainingPlayers, pot, currentBet
     #print("The pot is currently at",pot)
     RemoveFolds()
-    while remainingPlayers and numberOfBettingRounds < 2:
+    while remainingPlayers and numberOfBettingRounds < 4:
         RemoveFolds()
         for p in remainingPlayers:
             p.Assess()
@@ -178,7 +178,7 @@ def TurnBet():
     global tableCards, remainingPlayers, numberOfBettingRounds
     numberOfBettingRounds = 0
     RemoveFolds()
-    while remainingPlayers and numberOfBettingRounds < 2:
+    while remainingPlayers and numberOfBettingRounds < 4:
         RemoveFolds()
 
         for p in remainingPlayers:
