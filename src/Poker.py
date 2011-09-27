@@ -59,7 +59,7 @@ def GeneratePlayers(n):
     global estimatorTable
     #print ("generating" , n , "players")
     personalities = ["conservative", "bluffer", "persistent"]
-    types = ["phase3","phase3","phase3","phase2","phase2"]
+    types = ["phase3","phase3","phase3","phase2","phase2","phase2","phase1","phase1","phase1"]
     counter = 0
     typeCounter = 0
     for i in range(n):
@@ -324,7 +324,6 @@ def GenerateContext(player):
     elif(len(tableCards) == 5):
         i += 300
     i += len(remainingPlayers)*10
-    """
     if(player.bet > raiseValue *50):
         i+= 9
     elif(player.bet > raiseValue * 30):
@@ -343,7 +342,7 @@ def GenerateContext(player):
         i+=2
     elif(player.bet > raiseValue ):
         i+= 1
-        """
+
     return i
 
 
