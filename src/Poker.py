@@ -95,6 +95,7 @@ def NewRound():
         p.cards = DrawCards(2)
         preBetInfo()
 	# Forste runde med vedding
+    preBetInfo
     InitialBet()
     if(not done):
         # Trekker flop-kort
