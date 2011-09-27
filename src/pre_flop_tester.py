@@ -12,19 +12,6 @@ def main():
     allHoleCombinations = list(itertools.combinations(kortstokk, 2)) # Liste med alle mulige hullkombinasjoner
     #allHoleCombinations = [([14,'D'], [14,'H']), ([2,'D'], [3, 'D']), ([2, 'D'], [4, 'S'])]
     calculateProbabilities(allHoleCombinations, pre_flop_table) # Her regner man ut de faktiske sansynlighetene for aa vinne for hver mulige hullkortkombinasjon
-    works = True
-    for i in range(9):
-        for j in range(13):
-            for k in range (0, j):
-                if pre_flop_table[j][k][0][i] == -1:
-                    works = False
-                elif pre_flop_table[j][k][1][i] == -1:
-                    works = False
-    print works
-    print pre_flop_table[14-2][14-2][0][8]
-    print pre_flop_table[3-2][2-2][1][8]
-    print pre_flop_table[4-2][2-2][0][8]
-    print pre_flop_table[0][0][0][0]
     makePreFlopFile(pre_flop_table) # Her lages det en fil av tabellen med sansynlighetene
     end = datetime.datetime.now()
     stdout.write("End time: ")
@@ -40,7 +27,7 @@ def makePreFlopFile(table):
         for j in range(1,14):
             for k in range(1, j+1):
                 if k == j:
-                    stdout.write(str("%.6f" % round(table[j-1][k-1][0][i], 2))+'\n')
+                    stdout.write(str("%.6f" % round(table[j-1][k-1][0][i], 6))+'\n')
                 else:
                     stdout.write(str("%.6f" % round(table[j-1][k-1][0][i], 6))+" ")
 
@@ -51,10 +38,10 @@ def makePreFlopFile(table):
             for k in range(1, j+1):
                 if k == j:
                     # stdout.write(str(table[j][k][0][i])+'\n')
-                    stdout.write(str("%.6f" % round(table[j-1][k-1][0][i], 2))+'\n')
+                    stdout.write(str("%.6f" % round(table[j-1][k-1][1][i], 6))+'\n')
                 else:
                     # stdout.write(str(table[j][k][0][i]) + " ")
-                    stdout.write(str("%.6f" % round(table[j-1][k-1][0][i], 6))+" ")
+                    stdout.write(str("%.6f" % round(table[j-1][k-1][1][i], 6))+" ")
 
 
 # Her fjerner man player sine kort fra kortstokken, slik at ingen av
@@ -122,7 +109,7 @@ def calculateProbabilities(allHoleCombinations, pre_flop_table):
                 numberOfWins = float(0)
                 numberOfDraws = float(0)
                 numberOfLose = float(0)
-                numberOfRollouts = 5000
+                numberOfRollouts = 10
                 for i in range(numberOfRollouts):
                     new_cards = cards.gen_52_shuffled_cards()
                     removeComb(comb, new_cards)
@@ -142,10 +129,10 @@ def calculateProbabilities(allHoleCombinations, pre_flop_table):
                         numberOfDraws += 1
                     else:
                         numberOfWins += 1
-                    temp_strength = (numberOfWins + (numberOfDraws / float(2))) / (numberOfWins + numberOfDraws + numberOfLose)
-                    actual_strength = float(1)
-                    for i in range(n):
-                        actual_strength = actual_strength * temp_strength
+                    actual_strength = (numberOfWins / (float(numberOfRollouts)))
+                    #actual_strength = float(1)
+                    #for i in range(n):
+                    #    actual_strength = actual_strength * temp_strength
                     #print comb
                     #print len(pre_flop_table)
                     #print len(pre_flop_table[14-2])
@@ -165,10 +152,11 @@ def sorter(liste):
 def makePreFlopTable():
     pre_flop_table = [] 
     for i in range(1, 14):
-        unsuited = [-1] * 9
-        suited = [-1] * 9
-        new_inner = [[unsuited, suited]] * i
-        pre_flop_table.append(new_inner)
+        #unsuited = [-1] * 9
+        #suited = [-1] * 9
+        #new_inner = [[unsuited, suited]] * i
+		#new_inner = [[[-1 for x in range(9)] for foo in range(2)] for bar in range(i)]
+        pre_flop_table.append([[[-1 for x in range(9)] for foo in range(2)] for bar in range(i)])
     return pre_flop_table
 
 
