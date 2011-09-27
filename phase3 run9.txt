@@ -1,0 +1,5 @@
+player 0 ( conservative ) ( phase3 ) has -161141.666667 left
+player 1 ( bluffer ) ( phase3 ) has 174125.0 left
+player 2 ( persistent ) ( phase3 ) has 240966.666667 left
+player 3 ( conservative ) ( phase2 ) has -81533.3333333 left
+player 4 ( bluffer ) ( phase2 ) has -122416.666667 left
