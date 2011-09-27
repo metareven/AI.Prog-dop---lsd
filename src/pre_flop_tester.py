@@ -7,12 +7,16 @@ def main():
     start = datetime.datetime.now()
     stdout.write("Start time: ")
     stdout.write(str(start)+'\n')
+
+
     kortstokk = cards.gen_52_cards()     # Ny kortstokk
     pre_flop_table = makePreFlopTable()  # Her lages pre-flop tabellen der sansynlighetene for aa vinne skal legges inn
     allHoleCombinations = list(itertools.combinations(kortstokk, 2)) # Liste med alle mulige hullkombinasjoner
     #allHoleCombinations = [([14,'D'], [14,'H']), ([2,'D'], [3, 'D']), ([2, 'D'], [4, 'S'])]
     calculateProbabilities(allHoleCombinations, pre_flop_table) # Her regner man ut de faktiske sansynlighetene for aa vinne for hver mulige hullkortkombinasjon
     makePreFlopFile(pre_flop_table) # Her lages det en fil av tabellen med sansynlighetene
+
+
     end = datetime.datetime.now()
     stdout.write("End time: ")
     stdout.write(str(end)+'\n')
@@ -130,12 +134,6 @@ def calculateProbabilities(allHoleCombinations, pre_flop_table):
                     else:
                         numberOfWins += 1
                     actual_strength = (numberOfWins / (float(numberOfRollouts)))
-                    #actual_strength = float(1)
-                    #for i in range(n):
-                    #    actual_strength = actual_strength * temp_strength
-                    #print comb
-                    #print len(pre_flop_table)
-                    #print len(pre_flop_table[14-2])
                     if comb[0][1] != comb[1][1]:
                         pre_flop_table[comb[0][0]-2][comb[1][0]-2][0][n-1] = actual_strength
                     else:
@@ -152,10 +150,6 @@ def sorter(liste):
 def makePreFlopTable():
     pre_flop_table = [] 
     for i in range(1, 14):
-        #unsuited = [-1] * 9
-        #suited = [-1] * 9
-        #new_inner = [[unsuited, suited]] * i
-		#new_inner = [[[-1 for x in range(9)] for foo in range(2)] for bar in range(i)]
         pre_flop_table.append([[[-1 for x in range(9)] for foo in range(2)] for bar in range(i)])
     return pre_flop_table
 
