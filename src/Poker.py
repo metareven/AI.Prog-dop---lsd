@@ -59,7 +59,7 @@ def GeneratePlayers(n):
     global estimatorTable
     #print ("generating" , n , "players")
     personalities = ["conservative", "bluffer", "persistent"]
-    types = ["phase3","phase3","phase3","phase2","phase2","phase2","phase1","phase1","phase1"]
+    types = ["phase1","phase1","phase2","phase2","phase3","phase3"]
     counter = 0
     typeCounter = 0
     for i in range(n):
@@ -93,11 +93,14 @@ def NewRound():
     for p in players:
         p.playing = True
         p.cards = DrawCards(2)
-    # Forste runde med vedding
+        preBetInfo()
+	# Forste runde med vedding
+    preBetInfo
     InitialBet()
     if(not done):
         # Trekker flop-kort
        tableCards = DrawCards(3)
+       preBetInfo()
        #print "TABLE CARDS: ", tableCards
        # Ny runde med vedding
        FlopBet()
@@ -107,17 +110,37 @@ def NewRound():
             tableCards.append(flop[0])
             #print "TABLE CARDS: ", tableCards
             # Ny runde med vedding
+            preBetInfo()
             TurnBet()
             # Trekker river-kort
             river = DrawCards(1)
             tableCards.append(river[0])
             #print "TABLE CARDS: ", tableCards
             # Siste runde med vedding
+            preBetInfo()
             RiverBet()
             if(not done):
                 # Showdown
+                preBetInfo()
                 Showdown()
                 players.rotate(1)
+
+def preBetInfo():
+	global players, remainingPlayers, pot, tableCards
+	print("Hole Cards: ")
+	for p in remainingPlayers:
+		print("Player " + str(p.name) + str(p.cards))
+	print("Cash:")
+	for p in remainingPlayers:
+		print("Player " + str(p.name) + " " + str(p.cash))
+        print("Shared cards: " + str(tableCards))
+	print("Pot :" + str(pot))
+
+def actionInfo(player, action):
+    print("Player " + str(player.name) + "does action " + str(action) + "." + " Current bet is " + str(player.bet))
+    
+def printHandStrength(player):
+    print("Player " + str(player.name) + " has hand strength: " + str(player.handStrength))
 
 
 def InitialBet():
@@ -342,7 +365,6 @@ def GenerateContext(player):
         i+=2
     elif(player.bet > raiseValue ):
         i+= 1
-
     return i
 
 
@@ -376,6 +398,7 @@ class Player:
         self.playing = False
         #print "player ", self.name, " has folded"
         #self.contextTable = []
+        actionInfo(self, "fold")
         CheckIfFinished()
 
 
@@ -393,6 +416,7 @@ class Player:
         #print"the current bet is now at", currentBet,"and the pot is now at",pot
         self.contextTable.append(GenerateTableInfo(self,"raise"))
         self.lastAction = "raise"
+        actionInfo(self, self.lastAction)
 
     def Call(self):
         #?ker bet med s? mye som trengs for at bet skal bli lik currentBet
@@ -404,6 +428,7 @@ class Player:
         #print "the current pot is now at",pot
         self.contextTable.append(GenerateTableInfo(self,"call"))
         self.lastAction = "call"
+        actionInfo(self, self.lastAction)
 
     #Finner ut om spilleren skal Raise, Calle eller Folde
     def Assess(self):
@@ -479,6 +504,7 @@ class Player:
             else:
                 if(self.handStrength == 0):
                     self.handStrength = CalculateHandStrength(self)
+            printHandStrength(self)
             #raiser med bra kort, men raiser ikke med for mye
             if self.personality == "conservative":
                 if(self.handStrength > 0.6):
@@ -537,6 +563,7 @@ class Player:
             else:
                 if(self.handStrength == 0):
                     self.handStrength = CalculateHandStrength(self)
+            printHandStrength(self)
                 #ownStrength = hand_strength.calculateHandStrength([self.cards[0],self.cards[1]], len(remainingPlayers) -1, tableCards)
             guess = self.GuessHand()
 
@@ -659,4 +686,4 @@ class Player:
 
 
 if __name__ == '__main__':
-    main(5,1000)
+    main(6,1)
