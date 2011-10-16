@@ -1,4 +1,4 @@
-Lyd = wavread('D:\NTNU\kunstig intelligens programmering\Speach Recognition\sound_files\wav\Left_0.wav');
+Lyd = wavread('C:\Documents and Settings\Lars\Mine dokumenter\workspace\AI.Prog-dop---lsd\speech\Training Data\Left_0.wav');
 Lydbuffer = buffer(Lyd, 10, 2);
 Size = size(Lydbuffer);
 Fouriertransformer = zeros(Size(1), Size(2));
