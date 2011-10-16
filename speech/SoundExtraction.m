@@ -1,4 +1,4 @@
-Lyd = wavread('Training Data\go_5.wav');
+Lyd = wavread('Training Data\Left_0.wav');
 Lydbuffer = buffer(Lyd, 10, 2);
 Size = size(Lydbuffer);
 Fouriertransformer = zeros(Size(1), Size(2));
@@ -35,4 +35,4 @@ for i = 1:length(AverageAmps),
     end
 end
 %disp(AverageAmps);
-%disp(States);
+disp(States);
