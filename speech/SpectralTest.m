@@ -31,8 +31,8 @@ for i = 1:length(AverageAmps),
         States(i) = 3;
     elseif(temp >= 0.3),
         States(i) = 4;
-    else,
-        States(i) = 5
+    else
+        States(i) = 5;
     end
 end
 %disp(AverageAmps);
