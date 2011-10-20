@@ -4,6 +4,14 @@ hmm.prior = zeros(n,1);
         hmm.prior(i) = 1/n;
     end
 hmm.dynamic = createDynamicModel(n,word);
+hmm.observation = zeros(n,n,n);
+for i = 1:n
+    for j=1:n
+        hmm.observation(i,j,j) = 0.3;
+    end
+    hmm.observation(i,i,i) = 0.8;
+end
+
 
 result = hmm;
 
@@ -58,7 +66,7 @@ function result = spectralRead(file)
     for i = 1:Size(1),
         Fouriertransformer(i,:) = fft(Lydbuffer(i,:));
         Fouriertransformer(i,:) = Fouriertransformer(i,:).*conj(Fouriertransformer(i,:));
-        [peaks, valleys] = peakdet(Fouriertransformer(i,:),0.5);
+        [peaks, valleys] = peakdet(Fouriertransformer(i,:),0.4);
         for j = 1:length(peaks),
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
             %disp(AverageAmps(i));
