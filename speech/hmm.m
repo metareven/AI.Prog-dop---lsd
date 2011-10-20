@@ -55,6 +55,54 @@ function dyn = createDynamicModel(n,word)
 
 end
 
+function result = test(n)
+obs = gaussmf(x,[1 n]);
+dynamic = zeros(2,2);
+dynamic(1,:) = [0.7 0.3];
+dynamic(2,:) = [0.3 0.7];
+pi = [0.5 0.5]';
+
+end
+
+%forward alogritmen, returnerer en liste med:
+%l: summen av alle normaliseringskonstantene
+%messages: en liste over alle framoverbeskjedene
+function [l, messages] = forward(model,n)
+    %initialisering
+    l = 0;
+    alpha = zeros(n,n);
+    alpha(1,:) = model.observation(1,:,:) * model.prior;
+    counter = 0;
+    for i=1:length(alpha(1,:))
+        counter = counter + alpha(1,i);
+    end
+    alpha(1,:) = alpha(1,:)/counter;
+    l = l + counter;
+    
+    %induksjon:
+    for j=2:n
+        alpha(j,:) = model.observation(j,:,:) * model.dynamic' * alpha(j-1,:);
+        counter = 0;
+        for i=1:length(alpha(j,:))
+            counter = counter + alpha(j,i);
+        end
+        alpha(j,:) = alpha(j,:)/counter;
+        l = l + counter;
+    end
+    messages = alpha;
+    l = log(l);
+    
+    
+end
+
+
+            
+    
+    
+    
+    
+end
+
 function result = spectralRead(file)
     Lyd = wavread(file);
     Lydbuffer = buffer(Lyd, 10, 2);
