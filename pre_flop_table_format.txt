@@ -1,0 +1,16 @@
+<int players>
+<bool suited>
+2x2
+3x2 3x3
+4x2 4x3 4x4
+.
+.
+.
+14x2 14x3 ... 14x14
+<int players>
+<bool suited>
+2x2
+.
+.
+.
+14x2 ... 14x14
