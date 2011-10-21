@@ -1,5 +1,7 @@
 function result = hmm(n, word)
 hmm.prior = zeros(n,1);
+hmm.messages = zeros(n,1);
+hmm.norms = zeros(n,1);
     for i=1:length(hmm.prior)
         hmm.prior(i) = 1/n;
     end
@@ -67,6 +69,8 @@ end
 %forward alogritmen, returnerer en liste med:
 %l: summen av alle normaliseringskonstantene
 %messages: en liste over alle framoverbeskjedene
+%algoritmen legger også til n-tall i model sin norms. Dette er
+%normaliserings/skaleringsverdien som hvert steg deles med
 function [l, messages] = forward(model,n)
     %initialisering
     l = 0;
@@ -77,6 +81,7 @@ function [l, messages] = forward(model,n)
         counter = counter + alpha(1,i);
     end
     alpha(1,:) = alpha(1,:)/counter;
+    model.norms(1,:) = counter;
     l = l + counter;
     
     %induksjon:
@@ -87,6 +92,7 @@ function [l, messages] = forward(model,n)
             counter = counter + alpha(j,i);
         end
         alpha(j,:) = alpha(j,:)/counter;
+        model.norms(j,:) = counter;
         l = l + counter;
     end
     messages = alpha;
@@ -95,13 +101,24 @@ function [l, messages] = forward(model,n)
     
 end
 
+function messages = backward(model,n)
+%initialisering
+r = ones(n,1)';
+r(n,:) = r/model.norms(n);
 
-            
-    
-    
-    
-    
+%induksjon
+
+%dekrementerende for-løkker er teite i matlab... funky syntaks
+for i=n-1:-1:1
+    r(i,:) = model.dynamic * model.observation(i+1,:,:) * r(i+1);
+    r(i,:) = r(i,:) / model.norms(i);
 end
+messages = r;
+    
+
+end
+
+
 
 function result = spectralRead(file)
     Lyd = wavread(file);
