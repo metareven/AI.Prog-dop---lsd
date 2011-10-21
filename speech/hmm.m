@@ -27,6 +27,7 @@ function dyn = createDynamicModel(n,word)
     %ofte man går fra en gitt state til en annen
     for i=0:25
        temp = spectralRead(strcat('Training Data\',word,'_',num2str(i),'.','wav'));
+       %disp(size(temp));
        for j=1:length(temp) -1
            from = temp(j);
            to = temp(j+1);
@@ -122,19 +123,19 @@ end
 
 function result = spectralRead(file)
     Lyd = wavread(file);
-    Lydbuffer = buffer(Lyd, 10, 2);
+    Lydbuffer = buffer(Lyd, 80);
     Size = size(Lydbuffer);
     Fouriertransformer = zeros(Size(1), Size(2));
-    disp(Size);
-    AverageAmps = zeros(10,1);
-    States = zeros(10,1);
-    for i = 1:Size(1),
-        Fouriertransformer(i,:) = fft(Lydbuffer(i,:));
-        Fouriertransformer(i,:) = Fouriertransformer(i,:).*conj(Fouriertransformer(i,:));
-        [peaks, valleys] = peakdet(Fouriertransformer(i,:),0.4);
-        for j = 1:length(peaks),
+    %disp(Size);
+    AverageAmps = zeros(Size(2),1);
+    States = zeros(Size(2),1);
+    for i = 1:Size(2)
+        Fouriertransformer(:,i) = fft(Lydbuffer(:,i));
+        Fouriertransformer(:,i) = Fouriertransformer(:,i).*conj(Fouriertransformer(:,i));
+        [peaks, valleys] = peakdet(Fouriertransformer(:,i),0.1);
+        for j = 1:(size(peaks))(1);
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
-            %disp(AverageAmps(i));
+
         end
     end
     normalizer = 0;
