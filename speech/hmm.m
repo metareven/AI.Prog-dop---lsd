@@ -2,16 +2,25 @@ function result = hmm(n, word)
 hmm.prior = zeros(n,1);
 hmm.messages = zeros(n,1);
 hmm.norms = zeros(n,1);
+hmm.sigma = zeros(n,1);
+hmm.my = zeros(n,1);
     for i=1:length(hmm.prior)
         hmm.prior(i) = 1/n;
     end
+%lager den initielle dynamiske modellen    
 hmm.dynamic = createDynamicModel(n,word);
 hmm.observation = zeros(n,n,n);
+
+%initialiserer my og sigmaverdiene
+for i=1:n
+    hmm.my(i,1) = i;
+    hmm.sigma(i,1) = 1;
+end
+
 for i = 1:n
     for j=1:n
-        hmm.observation(i,j,j) = 0.3;
+        hmm.observation(i,j,j) = normpdf(j,i,1);
     end
-    hmm.observation(i,i,i) = 0.8;
 end
 
 
@@ -26,13 +35,11 @@ function dyn = createDynamicModel(n,word)
     %leser alle filene med training data fra ordet 'word' og sjekker hvor
     %ofte man går fra en gitt state til en annen
     for i=0:25
-       temp = spectralRead(strcat('Training Data\',word,'_',num2str(i),'.','wav'));
-       %disp(size(temp));
+       temp = spectralRead(strcat('Training Data\',word,'_',num2str(i),'.','wav'),n);
        for j=1:length(temp) -1
            from = temp(j);
            to = temp(j+1);
            dyn(from,to) = dyn(from,to)+1;
-           %counter = counter +1;
        end
     end
     %Deler alle elementene i tabellen med counter slik at summen av alle
@@ -41,7 +48,6 @@ function dyn = createDynamicModel(n,word)
         counter = 0;
         for y=1:n
             counter = counter + dyn(x,y);
-            %dyn(x,y) = dyn(x,y)/counter;
         end
         if(counter > 0)
             for i=1:n
@@ -121,12 +127,11 @@ end
 
 
 
-function result = spectralRead(file)
+function result = spectralRead(file,n)
     Lyd = wavread(file);
     Lydbuffer = buffer(Lyd, 80);
     Size = size(Lydbuffer);
     Fouriertransformer = zeros(Size(1), Size(2));
-    %disp(Size);
     AverageAmps = zeros(Size(2),1);
     States = zeros(Size(2),1);
     for i = 1:Size(2)
@@ -135,8 +140,8 @@ function result = spectralRead(file)
         [peaks, valleys] = peakdet(Fouriertransformer(:,i),0.1);
         for j = 1:(size(peaks))(1);
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
-
         end
+        
     end
     normalizer = 0;
     for i = 1:length(AverageAmps),
@@ -144,19 +149,20 @@ function result = spectralRead(file)
             normalizer = AverageAmps(i);
         end
     end
-    for i = 1:length(AverageAmps),
+    %States = zeros(size(peaks));
+    for i = 1:Size(2)
         AverageAmps(i) = AverageAmps(i) / normalizer;
         temp = AverageAmps(i);
-        if(temp >= 0.9),
-            States(i) = 1;
-        elseif(temp >= 0.7),
-            States(i) = 2;
-        elseif(temp >= 0.5),
-            States(i) = 3;
-        elseif(temp >= 0.3),
-            States(i) = 4;
-        else
-            States(i) = 5;
+        for j=n:-1:1
+            if(temp > 1 - (1/j))
+                States(i)=j;
+                break
+            end
+        end
+    end
+    for i=1:length(States)
+        if States(i) == 0
+            States(i) = n;
         end
     end
     result = States;
