@@ -28,6 +28,7 @@ for i = 1:25,
 end
 
 feature_file = spectralReadFromTable(feature_file,n);
+feature_file = abs(feature_file);
 
 T = length(feature_file);
 
@@ -61,7 +62,7 @@ while (convergence == false)
     [norms, scaled_forward_messages] = forward(hmm,n);
     norms = abs(norms);
     hmm.norms = norms;
-    disp(norms(1));
+    %disp(norms);
     scaled_backward_messages = backward(hmm,n);
     log_lik = 0;
     for i = 1:length(norms)
@@ -73,12 +74,12 @@ while (convergence == false)
     gamma = zeros(T,n);
     % Regner ut gamma-verdier
     for t=1:T
-        sum = 0;
+        divider_sum = 0;
         for i=1:n
-            sum = sum + (scaled_forward_messages(t,i) * scaled_backward_messages(t,i));
+            divider_sum = divider_sum + (scaled_forward_messages(t,i) * scaled_backward_messages(t,i));
         end
-        for i=1:n
-            gamma(t,i) = (scaled_forward_messages(t,i) * scaled_backward_messages(t,i)) / sum;
+        for j=1:n
+            gamma(t,j) = (scaled_forward_messages(t,j) * scaled_backward_messages(t,j)) / divider_sum;
         end
     end
     % Regner ut xi-verdier
@@ -95,6 +96,7 @@ while (convergence == false)
             end
         end
     end
+    
     % Gjenestimerer prior distribution og transition model ved å bruke
     % Rabiners likninger 40a og 40b
     for i = 1:n
@@ -139,7 +141,7 @@ while (convergence == false)
     end
     
     % Sjekker om log-likelihood konvergerer
-    %disp(log_lik);
+    disp(log_lik);
     if (abs(prior_log - log_lik) < 1)
         convergence = true;
     end
@@ -320,7 +322,7 @@ function feature_list = spectralReadFromTable(feature_file,n)
     AverageAmps = zeros(feature_size(2), 1);
     for i = 1:feature_size(2);
         fouriertransformer(:,i) = fft(feature_buffer(:,i));
-        fouriertransformer(:,1) = fouriertransformer(:,1).*conj(fouriertransformer(:,i));
+        fouriertransformer(:,i) = fouriertransformer(:,i).*conj(fouriertransformer(:,i));
         [peaks, valleys] = peakdet(fouriertransformer(:,i),0.1);
         for j = 1:(size(peaks))(1)
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
