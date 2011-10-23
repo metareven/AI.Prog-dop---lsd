@@ -1,45 +1,141 @@
 function result = hmm(n, word)
-hmm.prior = zeros(n,1);
-hmm.messages = zeros(n,1);
-hmm.norms = zeros(n,1);
-hmm.sigma = zeros(n,1);
-hmm.my = zeros(n,1);
+% Starter med å initialisere og "gjette" verdier på de forskjellige
+% modellene
+hmm.prior = zeros(n,1); % Prior model
+hmm.messages = zeros(n,1); % Forward messages
+hmm.norms = zeros(n,1); % Normalized messages
+hmm.sigma = zeros(n,1); % Sigma values used for the observation model
+hmm.my = zeros(n,1); % Mu values used for the observation model
     for i=1:length(hmm.prior)
         hmm.prior(i) = 1/n;
     end
-hmm.prior = hmm.prior';
-%lager den initielle dynamiske modellen    
+% Lager den initielle dynamiske modellen    
 hmm.dynamic = createDynamicModel(n,word);
-hmm.observation = zeros(n,n,n);
 
-%initialiserer my og sigmaverdiene
+% Initialiserer my og sigmaverdiene
 for i=1:n
-    hmm.my(i,1) = i;
-    hmm.sigma(i,1) = 1;
+    hmm.my(i,1) = i; % Mu(i) = i
+    hmm.sigma(i,1) = 1; % Alle sigmaverdiene starter med å være lik 1
 end
 
-for i = 1:n
-    for j=1:n
-        hmm.observation(i,j,j) = normpdf(j,i,1);
+% Samler alle features fra rammene fra et ord i en stor tabell
+feature_file = wavread(['Training Data\','',word,'','_0.wav']);
+for i = 1:25,
+    temp = feature_file.';
+    new_feature = wavread(['Training Data\','',word,'','_','',num2str(i),'','.wav']);
+    new_temp = new_feature.';
+    feature_file = [temp new_temp].';
+end
+
+% !!! Må gjøre om rå data i feature file til rammer
+
+T = length(feature_file);
+
+hmm.observation = zeros(T,n,n);
+
+% Fyller inn verdier i observation model matrisene
+for t = 1:T % Time slots
+    for j= 1:n % States
+        hmm.observation(i,j,j) = normpdf(feature_file(i),j,1);
     end
 end
 
-eksempelTest(hmm);
+
+% Beregner verdier for alle modellene ved hjelp av EM-algoritmen
+% START EM
+
+% Starter med å sette noen verdier som brukes for å terminere loopen når
+% man ser at log_likelihood som man får fra forward-algoritmen konvergerer.
+prior_log = 999999999;
+convergence = false;
+
+while (convergence == false)
+    % Starter med å gjøre Forward og backward med den nåværende modellen og
+    % observasjonene O(1:T) for å få f(t) og r(t) for t = 1,...,T.
+    [norms, scaled_forward_messages] = forward(hmm,n);
+    scaled_backward_messages = backward(hmm,n);
+    log_lik = 0;
+    for i = 1:length(norms)
+        log_lik = log_lik + log(norms(i));
+    end
+    % Finner så xi(t) og gamma(t) for alle t ved å bruke Rabiners likninger
+    % 37 + 38 der alpha(t) og betha(t) byttes ut med f(t) og r(t).
+    xi = zeros(T,n,n);
+    gamma = zeros(T,n);
+    % Regner ut gamma-verdier
+    for t=1:T
+        sum = 0;
+        for i=1:n
+            sum = sum + (scaled_forward_messages(t,i) * scaled_backward_messages(t,i));
+        end
+        for i=1:n
+            gamma(t,i) = (scaled_forward_messages(t,i) * scaled_backward_messages(t,i)) / sum;
+        end
+    end
+    % Regner ut xi-verdier
+    for t=1:T
+        divider_sum = 0;
+        for k=1:n
+            for l=1:n
+                divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*hmm.observation(l,t+1,t+1)*scaled_backward_messages(t+1,l));
+            end
+        end
+        for i = 1:n
+            for j = 1:n
+                xi(t,i,j) = (scaled_forward_messages(t,i)*hmm.dynamic(i,j)*hmm.observation(j,t+1,t+1)*scaled_backward_messages(r+1,j)) / divider_sum
+            end
+        end
+    end
+    % Gjenestimerer prior distribution og transition model ved å bruke
+    % Rabiners likninger 40a og 40b
+    for i = 1:n
+        hmm.prior(i) = gamma(1,i);
+    end
+    for i = 1:n
+        for j = 1:n
+            teller = 0;
+            nevner = 0;
+            for t=1:T-1
+                teller = teller + xi(t,i,j);
+                nevner = nevner + gamma(t,i);
+            end
+            hmm.dynamic(i,j) = teller / nevner;
+        end
+    end
+    % Oppdaterer verdier for my og zigma ved å bruke likninger 53 og 54
+    for j = 1:n
+        teller = 0;
+        nevner = 0;
+        for t = 1:length(feature_file)
+            teller = teller + (gamma(t,j) * feature_file(t));
+            nevner = nevner + (gamma(t,j));
+        end
+        hmm.my(j) = teller / nevner;
+    end
+    for j = 1:n
+        teller = 0;
+        nevner = 0;
+        for t = 1:T
+            teller = 0; % Skjønner ikke helt hva som skal stå her
+            nevner = 0; % Skjønner ikke helt hva som skal stå her heller
+        end
+        hmm.sigma(j) = teller / nevner;
+    end
+    
+    % !!! Her må hmm.observations oppdateres med de nye verdiene til hmm.my og
+    % !!! hmm.sigma
+    
+    % Sjekker om log-likelihood konvergerer
+    if (abs(prior_log - log_lik) < 0.1)
+        convergence = true;
+    end
+    prior_log = log_lik;
+end
+% END EM
 
 result = hmm;
 
 end
-
-function res = eksempelTest(obj)
-St = [1,2];
-obj.prior = [0.5 0.5]';
-obj.observation = [1.5,1,1.3];
-obj.dynamic = [.7 .3; .3 .7];
-[obj.norms, messages] = (forward(obj,2));
-backward(obj,2);
-
-end
-
 
 %metode som lager den dynamiske modellen
 function dyn = createDynamicModel(n,word)
@@ -48,7 +144,7 @@ function dyn = createDynamicModel(n,word)
     %leser alle filene med training data fra ordet 'word' og sjekker hvor
     %ofte man går fra en gitt state til en annen
     for i=0:25
-       [temp amps] = spectralRead(strcat('Training Data\',word,'_',num2str(i),'.','wav'),n);
+       temp = spectralRead(strcat('Training Data\',word,'_',num2str(i),'.','wav'),n);
        for j=1:length(temp) -1
            from = temp(j);
            to = temp(j+1);
@@ -77,75 +173,70 @@ function dyn = createDynamicModel(n,word)
 
 end
 
+function result = test(n)
+obs = gaussmf(x,[1 n]);
+dynamic = zeros(2,2);
+dynamic(1,:) = [0.7 0.3];
+dynamic(2,:) = [0.3 0.7];
+pi = [0.5 0.5]';
+
+end
+
 %forward alogritmen, returnerer en liste med:
 %l: summen av alle normaliseringskonstantene
 %messages: en liste over alle framoverbeskjedene
 %algoritmen legger også til n-tall i model sin norms. Dette er
 %normaliserings/skaleringsverdien som hvert steg deles med
-
 function [l, messages] = forward(model,n)
-l = zeros(length(model.observation),1);
-f = zeros(n);
-F = zeros(length(model.observation),n);
-
-%regner ut observasjosverdiene for det første steget
-for i=1:n
-    f(i,i) = normpdf(model.observation(1),i,model.sigma(1));
-end
-f = f * model.prior;
-
-for i=1:length(f)
-    l(1) = l(1)+ f(i);
-end
-%normaliserer
-f = f/l(1);
-f = f';
-F(1,:) = f;
-
-%induksjonsteget
-for i =2:length(model.observation)
-    %regner ut observasjonsmatrisa for dette steget
-    f = zeros(n);
-    for j=1:n
-        f(j,j) = normpdf(model.observation(i),j,model.sigma(j));
+    %initialisering
+    l = 0;
+    alpha = zeros(n,n);
+    alpha(1,:) = model.observation(1,:,:) * model.prior;
+    counter = 0;
+    for i=1:length(alpha(1,:))
+        counter = counter + alpha(1,i);
     end
-
-    %fortsetter med formelen
-    f = f * model.dynamic';
-    f = f * F(i-1,:)';
-        %normaliserer
-    for j=1:length(f)
-        l(i) = l(i)+ f(j);
-    end
-    f = f/l(i);
-    F(i,:) = f;
-end
-
-messages = F;
-
-
-end
-
-function messages = backward(model,n);
-    %init
-    r = ones(length(model.observation),n);
-    B = zeros(n,n);
-    r(length(r),:) = r(length(r),:)/model.norms(length(r));
-    %induksjon
-    for i=length(model.observation)-1:-1:1
-        %regner ut observasjonsmatrisa for dette steget
-        for j=1:n
-            B(j,j) = normpdf(model.observation(i),j,model.sigma(j));
+    alpha(1,:) = alpha(1,:)/counter;
+    model.norms(1,:) = counter;
+    l = l + counter;
+    
+    %induksjon:
+    for j=2:n
+        alpha(j,:) = model.observation(j,:,:) * model.dynamic' * alpha(j-1,:);
+        counter = 0;
+        for i=1:length(alpha(j,:))
+            counter = counter + alpha(j,i);
         end
-        r(i,:) = model.dynamic * B * r(i+1,:)';
-        r(i,:) = r(i,:) / model.norms(i);
+        alpha(j,:) = alpha(j,:)/counter;
+        model.norms(j,:) = counter;
+        l = l + counter;
     end
-    messages = r;
-    disp(r);
+    messages = alpha;
+    l = log(l);
+    
+    
+end
+
+function messages = backward(model,n)
+%initialisering
+r = ones(n,1)';
+r(n,:) = r/model.norms(n);
+
+%induksjon
+
+%dekrementerende for-løkker er teite i matlab... funky syntaks
+for i=n-1:-1:1
+    r(i,:) = model.dynamic * model.observation(i+1,:,:) * r(i+1);
+    r(i,:) = r(i,:) / model.norms(i);
+end
+messages = r;
+    
+
 end
 
 
-function [result amps] = spectralRead(file,n)
+
+function [result, features] = spectralRead(file,n)
     Lyd = wavread(file);
     Lydbuffer = buffer(Lyd, 80);
     Size = size(Lydbuffer);
@@ -178,11 +269,11 @@ function [result amps] = spectralRead(file,n)
             end
         end
     end
+    features = AverageAmps;
     for i=1:length(States)
         if States(i) == 0
             States(i) = n;
         end
     end
     result = States;
-    amps = AverageAmps;
 end
