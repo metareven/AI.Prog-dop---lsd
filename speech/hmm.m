@@ -27,19 +27,19 @@ for i = 1:25,
     feature_file = [temp new_temp].';
 end
 
-% !!! Må gjøre om rå data i feature file til rammer
+feature_file = spectralReadFromTable(feature_file,n);
 
 T = length(feature_file);
 
 hmm.observation = zeros(T,n,n);
 
-eksempelTest(hmm);
-disp('Success');
+% eksempelTest(hmm);
+% disp('Success');
 
 % Fyller inn verdier i observation model matrisene
 for t = 1:T % Time slots
     for j= 1:n % States
-        hmm.observation(i,j,j) = normpdf(feature_file(i),j,1);
+        hmm.observation(t,j,j) = normpdf(feature_file(t),hmm.my(j),hmm.sigma(j));
     end
 end
 
@@ -52,10 +52,16 @@ end
 prior_log = 999999999;
 convergence = false;
 
+counter = 0;
 while (convergence == false)
+    disp(counter);
+    counter = counter + 1;
     % Starter med å gjøre Forward og backward med den nåværende modellen og
     % observasjonene O(1:T) for å få f(t) og r(t) for t = 1,...,T.
     [norms, scaled_forward_messages] = forward(hmm,n);
+    norms = abs(norms);
+    hmm.norms = norms;
+    disp(norms(1));
     scaled_backward_messages = backward(hmm,n);
     log_lik = 0;
     for i = 1:length(norms)
@@ -76,16 +82,16 @@ while (convergence == false)
         end
     end
     % Regner ut xi-verdier
-    for t=1:T
+    for t=1:T-1
         divider_sum = 0;
         for k=1:n
             for l=1:n
-                divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*hmm.observation(l,t+1,t+1)*scaled_backward_messages(t+1,l));
+                divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*hmm.observation(t+1,l,l)*scaled_backward_messages(t+1,l));
             end
         end
         for i = 1:n
             for j = 1:n
-                xi(t,i,j) = (scaled_forward_messages(t,i)*hmm.dynamic(i,j)*hmm.observation(j,t+1,t+1)*scaled_backward_messages(r+1,j)) / divider_sum
+                xi(t,i,j) = (scaled_forward_messages(t,i)*hmm.dynamic(i,j)*hmm.observation(t+1,j,j)*scaled_backward_messages(t+1,j)) / divider_sum;
             end
         end
     end
@@ -105,12 +111,12 @@ while (convergence == false)
             hmm.dynamic(i,j) = teller / nevner;
         end
     end
-    % Oppdaterer verdier for my og zigma ved å bruke likninger 53 og 54
+    % Oppdaterer verdier for my og sigma ved å bruke likninger 53 og 54
     for j = 1:n
         teller = 0;
         nevner = 0;
-        for t = 1:length(feature_file)
-            teller = teller + (gamma(t,j) * feature_file(t));
+        for t = 1:T
+            teller = teller + (gamma(t,j) * feature_file(t)); % Litt usikker på om det er selve feature_file(t) som skal brukes her eller observasjonsmodellen
             nevner = nevner + (gamma(t,j));
         end
         hmm.my(j) = teller / nevner;
@@ -119,17 +125,22 @@ while (convergence == false)
         teller = 0;
         nevner = 0;
         for t = 1:T
-            teller = 0; % Skjønner ikke helt hva som skal stå her
-            nevner = 0; % Skjønner ikke helt hva som skal stå her heller
+            teller = teller + (gamma(t,j) * (feature_file(t) - hmm.my(j)) * (feature_file(t) - hmm.my(j))); % Tror ikke dette stemmer, men...
+            nevner = nevner + gamma(t,j);
         end
         hmm.sigma(j) = teller / nevner;
     end
     
-    % !!! Her må hmm.observations oppdateres med de nye verdiene til hmm.my og
-    % !!! hmm.sigma
+    % Oppdaterer hmm.observations
+    for t = 1:T
+        for j = 1:n
+            hmm.observation(t,j,j) = normpdf(feature_file(t),hmm.my(j),hmm.sigma(j));
+        end
+    end
     
     % Sjekker om log-likelihood konvergerer
-    if (abs(prior_log - log_lik) < 0.1)
+    %disp(log_lik);
+    if (abs(prior_log - log_lik) < 1)
         convergence = true;
     end
     prior_log = log_lik;
@@ -228,7 +239,9 @@ for i =2:length(model.observation)
     for j=1:length(f)
         l(i) = l(i)+ f(j);
     end
-    f = f/l(i);
+    if (l(i) ~= 0)
+        f = f/l(i);
+    end
     F(i,:) = f;
 end
 
@@ -253,7 +266,7 @@ function messages = backward(model,n);
         r(i,:) = r(i,:) / model.norms(i);
     end
     messages = r;
-    disp(r);
+    % disp(r);
 end
 
 
@@ -298,4 +311,38 @@ function [result, features] = spectralRead(file,n)
         end
     end
     result = States;
+end
+
+function feature_list = spectralReadFromTable(feature_file,n)
+    feature_buffer = buffer(feature_file,80);
+    feature_size = size(feature_buffer);
+    fouriertransformer = zeros(feature_size(1), feature_size(2));
+    AverageAmps = zeros(feature_size(2), 1);
+    for i = 1:feature_size(2);
+        fouriertransformer(:,i) = fft(feature_buffer(:,i));
+        fouriertransformer(:,1) = fouriertransformer(:,1).*conj(fouriertransformer(:,i));
+        [peaks, valleys] = peakdet(fouriertransformer(:,i),0.1);
+        for j = 1:(size(peaks))(1)
+            AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
+        end
+    end
+    normalizer = 0;
+    for i = 1:length(AverageAmps),
+        if(AverageAmps(i) > normalizer),
+            normalizer = AverageAmps(i);
+        end
+    end
+    %States = zeros(size(peaks));
+    for i = 1:feature_size(2)
+        AverageAmps(i) = AverageAmps(i) / normalizer;
+        temp = AverageAmps(i);
+        for j=n:-1:1
+            if(temp > 1 - (1/j))
+                States(i)=j;
+                break
+            end
+        end
+    end
+    feature_list = AverageAmps;
+
 end
