@@ -7,6 +7,7 @@ hmm.my = zeros(n,1);
     for i=1:length(hmm.prior)
         hmm.prior(i) = 1/n;
     end
+hmm.prior = hmm.prior';
 %lager den initielle dynamiske modellen    
 hmm.dynamic = createDynamicModel(n,word);
 hmm.observation = zeros(n,n,n);
@@ -23,10 +24,22 @@ for i = 1:n
     end
 end
 
+eksempelTest(hmm);
 
 result = hmm;
 
 end
+
+function res = eksempelTest(obj)
+St = [1,2];
+obj.prior = [0.5 0.5]';
+obj.observation = [1.5,1,1.3];
+obj.dynamic = [.7 .3; .3 .7];
+[obj.norms, messages] = (forward(obj,2));
+backward(obj,2);
+
+end
+
 
 %metode som lager den dynamiske modellen
 function dyn = createDynamicModel(n,word)
@@ -35,7 +48,7 @@ function dyn = createDynamicModel(n,word)
     %leser alle filene med training data fra ordet 'word' og sjekker hvor
     %ofte man går fra en gitt state til en annen
     for i=0:25
-       temp = spectralRead(strcat('Training Data\',word,'_',num2str(i),'.','wav'),n);
+       [temp amps] = spectralRead(strcat('Training Data\',word,'_',num2str(i),'.','wav'),n);
        for j=1:length(temp) -1
            from = temp(j);
            to = temp(j+1);
@@ -64,70 +77,75 @@ function dyn = createDynamicModel(n,word)
 
 end
 
-function result = test(n)
-obs = gaussmf(x,[1 n]);
-dynamic = zeros(2,2);
-dynamic(1,:) = [0.7 0.3];
-dynamic(2,:) = [0.3 0.7];
-pi = [0.5 0.5]';
-
-end
-
 %forward alogritmen, returnerer en liste med:
 %l: summen av alle normaliseringskonstantene
 %messages: en liste over alle framoverbeskjedene
 %algoritmen legger også til n-tall i model sin norms. Dette er
 %normaliserings/skaleringsverdien som hvert steg deles med
+
 function [l, messages] = forward(model,n)
-    %initialisering
-    l = 0;
-    alpha = zeros(n,n);
-    alpha(1,:) = model.observation(1,:,:) * model.prior;
-    counter = 0;
-    for i=1:length(alpha(1,:))
-        counter = counter + alpha(1,i);
+l = zeros(length(model.observation),1);
+f = zeros(n);
+F = zeros(length(model.observation),n);
+
+%regner ut observasjosverdiene for det første steget
+for i=1:n
+    f(i,i) = normpdf(model.observation(1),i,model.sigma(1));
+end
+f = f * model.prior;
+
+for i=1:length(f)
+    l(1) = l(1)+ f(i);
+end
+%normaliserer
+f = f/l(1);
+f = f';
+F(1,:) = f;
+
+%induksjonsteget
+for i =2:length(model.observation)
+    %regner ut observasjonsmatrisa for dette steget
+    f = zeros(n);
+    for j=1:n
+        f(j,j) = normpdf(model.observation(i),j,model.sigma(j));
     end
-    alpha(1,:) = alpha(1,:)/counter;
-    model.norms(1,:) = counter;
-    l = l + counter;
-    
-    %induksjon:
-    for j=2:n
-        alpha(j,:) = model.observation(j,:,:) * model.dynamic' * alpha(j-1,:);
-        counter = 0;
-        for i=1:length(alpha(j,:))
-            counter = counter + alpha(j,i);
+
+    %fortsetter med formelen
+    f = f * model.dynamic';
+    f = f * F(i-1,:)';
+        %normaliserer
+    for j=1:length(f)
+        l(i) = l(i)+ f(j);
+    end
+    f = f/l(i);
+    F(i,:) = f;
+end
+
+messages = F;
+
+
+end
+
+function messages = backward(model,n);
+    %init
+    r = ones(length(model.observation),n);
+    B = zeros(n,n);
+    r(length(r),:) = r(length(r),:)/model.norms(length(r));
+    %induksjon
+    for i=length(model.observation)-1:-1:1
+        %regner ut observasjonsmatrisa for dette steget
+        for j=1:n
+            B(j,j) = normpdf(model.observation(i),j,model.sigma(j));
         end
-        alpha(j,:) = alpha(j,:)/counter;
-        model.norms(j,:) = counter;
-        l = l + counter;
+        r(i,:) = model.dynamic * B * r(i+1,:)';
+        r(i,:) = r(i,:) / model.norms(i);
     end
-    messages = alpha;
-    l = log(l);
-    
-    
-end
-
-function messages = backward(model,n)
-%initialisering
-r = ones(n,1)';
-r(n,:) = r/model.norms(n);
-
-%induksjon
-
-%dekrementerende for-løkker er teite i matlab... funky syntaks
-for i=n-1:-1:1
-    r(i,:) = model.dynamic * model.observation(i+1,:,:) * r(i+1);
-    r(i,:) = r(i,:) / model.norms(i);
-end
-messages = r;
-    
-
+    messages = r;
+    disp(r);
 end
 
 
-
-function result = spectralRead(file,n)
+function [result amps] = spectralRead(file,n)
     Lyd = wavread(file);
     Lydbuffer = buffer(Lyd, 80);
     Size = size(Lydbuffer);
@@ -166,4 +184,5 @@ function result = spectralRead(file,n)
         end
     end
     result = States;
+    amps = AverageAmps;
 end
