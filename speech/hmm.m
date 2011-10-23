@@ -33,6 +33,9 @@ T = length(feature_file);
 
 hmm.observation = zeros(T,n,n);
 
+eksempelTest(hmm);
+disp('Success');
+
 % Fyller inn verdier i observation model matrisene
 for t = 1:T % Time slots
     for j= 1:n % States
@@ -178,7 +181,9 @@ St = [1,2];
 obj.prior = [0.5 0.5]';
 obj.observation = [1.5,1,1.3];
 obj.dynamic = [.7 .3; .3 .7];
+obj.my = [1,2];
 [obj.norms, messages] = (forward(obj,2));
+disp(messages);
 backward(obj,2);
 
 end
@@ -196,7 +201,7 @@ F = zeros(length(model.observation),n);
 
 %regner ut observasjosverdiene for det første steget
 for i=1:n
-    f(i,i) = normpdf(model.observation(1),i,model.sigma(1));
+    f(i,i) = normpdf(model.observation(1),model.my(i),model.sigma(1));
 end
 f = f * model.prior;
 
@@ -213,7 +218,7 @@ for i =2:length(model.observation)
     %regner ut observasjonsmatrisa for dette steget
     f = zeros(n);
     for j=1:n
-        f(j,j) = normpdf(model.observation(i),j,model.sigma(j));
+        f(j,j) = normpdf(model.observation(i),model.my(j),model.sigma(j));
     end
 
     %fortsetter med formelen
@@ -242,7 +247,7 @@ function messages = backward(model,n);
     for i=length(model.observation)-1:-1:1
         %regner ut observasjonsmatrisa for dette steget
         for j=1:n
-            B(j,j) = normpdf(model.observation(i),j,model.sigma(j));
+            B(j,j) = normpdf(model.observation(i),model.my(j),model.sigma(j));
         end
         r(i,:) = model.dynamic * B * r(i+1,:)';
         r(i,:) = r(i,:) / model.norms(i);
