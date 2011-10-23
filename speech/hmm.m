@@ -11,7 +11,6 @@ hmm.my = zeros(n,1); % Mu values used for the observation model
     end
 % Lager den initielle dynamiske modellen    
 hmm.dynamic = createDynamicModel(n,word);
-hmm.observation = zeros(n,n,n);
 
 % Initialiserer my og sigmaverdiene
 for i=1:n
@@ -28,15 +27,22 @@ for i = 1:25,
     feature_file = [temp new_temp].';
 end
 
+% !!! Må gjøre om rå data i feature file til rammer
+
+T = length(feature_file);
+
+hmm.observation = zeros(T,n,n);
+
 % Fyller inn verdier i observation model matrisene
-for i = 1:n
-    for j=1:Length(feature_file)
-        hmm.observation(i,j,j) = normpdf(feature_file(j),i,1);
+for t = 1:T % Time slots
+    for j= 1:n % States
+        hmm.observation(i,j,j) = normpdf(feature_file(i),j,1);
     end
 end
 
 
 % Beregner verdier for alle modellene ved hjelp av EM-algoritmen
+% START EM
 
 % Starter med å sette noen verdier som brukes for å terminere loopen når
 % man ser at log_likelihood som man får fra forward-algoritmen konvergerer.
@@ -46,14 +52,18 @@ convergence = false;
 while (convergence == false)
     % Starter med å gjøre Forward og backward med den nåværende modellen og
     % observasjonene O(1:T) for å få f(t) og r(t) for t = 1,...,T.
-    [log, scaled_forward_messages] = forward(hmm,n);
+    [norms, scaled_forward_messages] = forward(hmm,n);
     scaled_backward_messages = backward(hmm,n);
+    log_lik = 0;
+    for i = 1:length(norms)
+        log_lik = log_lik + log(norms(i));
+    end
     % Finner så xi(t) og gamma(t) for alle t ved å bruke Rabiners likninger
     % 37 + 38 der alpha(t) og betha(t) byttes ut med f(t) og r(t).
-    xi = zeros(Length(feature_file),n,n);
-    gamma = zeros(Length(feature_file),n);
+    xi = zeros(T,n,n);
+    gamma = zeros(T,n);
     % Regner ut gamma-verdier
-    for t=1:Length(feature_file)
+    for t=1:T
         sum = 0;
         for i=1:n
             sum = sum + (scaled_forward_messages(t,i) * scaled_backward_messages(t,i));
@@ -63,7 +73,7 @@ while (convergence == false)
         end
     end
     % Regner ut xi-verdier
-    for t=1:Length(feature_file)
+    for t=1:T
         divider_sum = 0;
         for k=1:n
             for l=1:n
@@ -85,7 +95,7 @@ while (convergence == false)
         for j = 1:n
             teller = 0;
             nevner = 0;
-            for t=1:Length(feature_file)-1
+            for t=1:T-1
                 teller = teller + xi(t,i,j);
                 nevner = nevner + gamma(t,i);
             end
@@ -96,7 +106,7 @@ while (convergence == false)
     for j = 1:n
         teller = 0;
         nevner = 0;
-        for t = 1:Length(feature_file)
+        for t = 1:length(feature_file)
             teller = teller + (gamma(t,j) * feature_file(t));
             nevner = nevner + (gamma(t,j));
         end
@@ -105,7 +115,7 @@ while (convergence == false)
     for j = 1:n
         teller = 0;
         nevner = 0;
-        for t = 1:Length(feature_file)
+        for t = 1:T
             teller = 0; % Skjønner ikke helt hva som skal stå her
             nevner = 0; % Skjønner ikke helt hva som skal stå her heller
         end
@@ -116,10 +126,12 @@ while (convergence == false)
     % !!! hmm.sigma
     
     % Sjekker om log-likelihood konvergerer
-    if (abs(prior_log - log) < 0.1)
+    if (abs(prior_log - log_lik) < 0.1)
         convergence = true;
     end
+    prior_log = log_lik;
 end
+% END EM
 
 result = hmm;
 
