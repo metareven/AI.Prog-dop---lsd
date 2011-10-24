@@ -110,7 +110,7 @@ while (convergence == false)
                 end
                 %}
                 %divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*hmm.observation(t+1,l,l)*scaled_backward_messages(t+1,l));
-                divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*hmm.observation(t+1)*scaled_backward_messages(t+1,l));
+                divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*normpdf(hmm.observation(t+1),hmm.my(l),hmm.sigma(l))*scaled_backward_messages(t+1,l));
             end
         end
         for i = 1:n
@@ -125,7 +125,7 @@ while (convergence == false)
                 %xi(t,i,j) = (scaled_forward_messages(t,i)*hmm.dynamic(i,j)*hmm.observation(t+1,j,j)*scaled_backward_messages(t+1,j)) / divider_sum;
                 xi(t,i,j) = (scaled_forward_messages(t,i));
                 xi(t,i,j) = xi(t,i,j)*hmm.dynamic(i,j);
-                xi(t,i,j) = xi(t,i,j)*hmm.observation(t+1);
+                xi(t,i,j) = xi(t,i,j)*normpdf(hmm.observation(t+1),hmm.my(j),hmm.sigma(j));
                 xi(t,i,j) = xi(t,i,j)*scaled_backward_messages(t+1,j);
                                 %disp(divider_sum);
                                 %disp(xi(t,i,j));
@@ -212,7 +212,7 @@ while (convergence == false)
     prior_log = log_lik;
 end
 % END EM
-
+    
 result = hmm;
 
 end
@@ -246,7 +246,7 @@ function dyn = createDynamicModel(n,word)
     end
     
     
-       
+   
            
     
     
@@ -345,8 +345,9 @@ function [result, features] = spectralRead(file,n)
     AverageAmps = zeros(Size(2),1);
     States = zeros(Size(2),1);
     for i = 1:Size(2)
-        Fouriertransformer(:,i) = fft(Lydbuffer(:,i));
-        Fouriertransformer(:,i) = Fouriertransformer(:,i).*conj(Fouriertransformer(:,i));
+        %Fouriertransformer(:,i) = fft(Lydbuffer(:,i));
+        Fouriertransformer(:,i) = cceps(Lydbuffer(:,i));
+        %Fouriertransformer(:,i) = Fouriertransformer(:,i).*conj(Fouriertransformer(:,i));
         [peaks, valleys] = peakdet(Fouriertransformer(:,i),0.1);
         for j = 1:(size(peaks))(1);
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
@@ -385,8 +386,9 @@ function feature_list = spectralReadFromTable(feature_file,n)
     fouriertransformer = zeros(feature_size(1), feature_size(2));
     AverageAmps = zeros(feature_size(2), 1);
     for i = 1:feature_size(2);
-        fouriertransformer(:,i) = fft(feature_buffer(:,i));
-        fouriertransformer(:,i) = fouriertransformer(:,i).*conj(fouriertransformer(:,i));
+        %fouriertransformer(:,i) = fft(feature_buffer(:,i));
+        %fouriertransformer(:,i) = fouriertransformer(:,i).*conj(fouriertransformer(:,i));
+        fouriertransformer(:,i) = cceps(feature_buffer(:,i));
         [peaks, valleys] = peakdet(fouriertransformer(:,i),0.1);
         for j = 1:(size(peaks))(1);
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));

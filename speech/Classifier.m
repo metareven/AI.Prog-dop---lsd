@@ -20,7 +20,7 @@ results = zeros(35,1);
 
 for i=1:35
     probs = [0,0,0,0];
-    [trash obs] = spectralRead(strcat(['TestData\query_',int2str(i),'.wav']),n);
+    [obs trash] = spectralRead(strcat(['TestData\query_',int2str(i),'.wav']),n);
     for j=1:length(models)
         models(j).observation = obs;
         norms = forward(models(j),n);
