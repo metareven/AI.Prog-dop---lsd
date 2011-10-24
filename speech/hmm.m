@@ -132,6 +132,7 @@ while (convergence == false)
                 if(divider_sum == 0)
                     divider_sum = 1;
                 end
+                catcher = xi(t,i,j);
                 xi(t,i,j) = xi(t,i,j)/ divider_sum;
                 %disp(xi(t,i,j));
                 
@@ -140,6 +141,13 @@ while (convergence == false)
                 bool = xi(t,i,j) >= 0;
                 bool = bool + (xi(t,i,j) <= 0);
                 if(bool == 0)
+                    disp('mega crash!');
+                    disp('divider_sum');
+                    disp(divider_sum);
+                    disp('xi(t,i,j)');
+                    disp(catcher);
+                    %kode som får programmet til å kræsje når vi har NaN
+                    %verdier
                     A = 3 / []
                 end
             end
