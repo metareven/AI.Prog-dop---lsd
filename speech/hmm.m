@@ -58,15 +58,18 @@ prior_log = 999999999;
 convergence = false;
 
 counter = 0;
-while (convergence == false)
-    disp('counter');
-    disp(counter);
-    disp('-----');
+maxcounter = 25;
+while (convergence == false && (counter <= maxcounter))
+    %disp('counter');
+    %disp(counter);
+    %disp('-----');
     
-    disp('my values');
-    disp(hmm.my);
-    disp('sigma values');
-    disp(hmm.sigma);
+    %disp('my values');
+    %disp(hmm.my);
+    %disp('sigma values');
+    %disp(hmm.sigma);
+    %disp('dynamic');
+    %disp(hmm.dynamic);
     
     counter = counter + 1;
     % Starter med å gjøre Forward og backward med den nåværende modellen og
@@ -89,6 +92,9 @@ while (convergence == false)
         divider_sum = 0;
         for i=1:n
             divider_sum = divider_sum + (scaled_forward_messages(t,i) * scaled_backward_messages(t,i));
+        end
+        if(divider_sum == 0)
+            divider_sum = 1;
         end
         if(divider_sum == 0)
             divider_sum = 1;
@@ -178,6 +184,9 @@ while (convergence == false)
             teller = teller + (gamma(t,j) * hmm.observation(t)); % Litt usikker på om det er selve feature_file(t) som skal brukes her eller observasjonsmodellen
             nevner = nevner + (gamma(t,j));
         end
+        if(nevner == 0)
+            nevner = 1;
+        end
         hmm.my(j) = teller / nevner;
         %disp('my');
         %disp(hmm.my(j));
@@ -188,6 +197,9 @@ while (convergence == false)
         for t = 1:T
             teller = teller + (gamma(t,j) * (hmm.observation(t) - hmm.my(j)) * (hmm.observation(t) - hmm.my(j))); % Tror ikke dette stemmer, men...
             nevner = nevner + gamma(t,j);
+        end
+        if(nevner == 0)
+            nevner = 1;
         end
         hmm.sigma(j) = teller / nevner;
         %disp('sigma');
