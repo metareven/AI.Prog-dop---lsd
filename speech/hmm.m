@@ -32,18 +32,22 @@ feature_file = abs(feature_file);
 
 T = length(feature_file);
 
-hmm.observation = zeros(T,n,n);
+hmm.observation = feature_file;
 
 % eksempelTest(hmm);
 % disp('Success');
 
-% Fyller inn verdier i observation model matrisene
+
+
+% Fyller inn verdier i observation model matrisene.. Dette er ikke hva
+% hmm.observation er!
+%{
 for t = 1:T % Time slots
     for j= 1:n % States
         hmm.observation(t,j,j) = normpdf(feature_file(t),hmm.my(j),hmm.sigma(j));
     end
 end
-
+%}
 
 % Beregner verdier for alle modellene ved hjelp av EM-algoritmen
 % START EM
@@ -55,7 +59,15 @@ convergence = false;
 
 counter = 0;
 while (convergence == false)
+    disp('counter');
     disp(counter);
+    disp('-----');
+    
+    disp('my values');
+    disp(hmm.my);
+    disp('sigma values');
+    disp(hmm.sigma);
+    
     counter = counter + 1;
     % Starter med å gjøre Forward og backward med den nåværende modellen og
     % observasjonene O(1:T) for å få f(t) og r(t) for t = 1,...,T.
@@ -78,6 +90,9 @@ while (convergence == false)
         for i=1:n
             divider_sum = divider_sum + (scaled_forward_messages(t,i) * scaled_backward_messages(t,i));
         end
+        if(divider_sum == 0)
+            divider_sum = 1;
+        end
         for j=1:n
             gamma(t,j) = (scaled_forward_messages(t,j) * scaled_backward_messages(t,j)) / divider_sum;
         end
@@ -87,12 +102,46 @@ while (convergence == false)
         divider_sum = 0;
         for k=1:n
             for l=1:n
-                divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*hmm.observation(t+1,l,l)*scaled_backward_messages(t+1,l));
+                %regner ut observajonsmatrisa ut fra Ot+1 My(d) og Sigma(d)
+                %{
+                obs = zeros(n,n);
+                for d=1:n
+                    obs(d,d) = normpdf(hmm.observation(t+1),hmm.my(d),hmm.sigma(d));
+                end
+                %}
+                %divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*hmm.observation(t+1,l,l)*scaled_backward_messages(t+1,l));
+                divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*hmm.observation(t+1)*scaled_backward_messages(t+1,l));
             end
         end
         for i = 1:n
             for j = 1:n
-                xi(t,i,j) = (scaled_forward_messages(t,i)*hmm.dynamic(i,j)*hmm.observation(t+1,j,j)*scaled_backward_messages(t+1,j)) / divider_sum;
+                %regner ut observajonsmatrisa ut fra Ot+1 My(j) og Sigma(j)
+                %{
+                obs = zeros(n,n);
+                for d=1:n
+                    obs(d,d) = normpdf(hmm.observation(t+1),hmm.my(d),hmm.sigma(d));
+                end
+                %}
+                %xi(t,i,j) = (scaled_forward_messages(t,i)*hmm.dynamic(i,j)*hmm.observation(t+1,j,j)*scaled_backward_messages(t+1,j)) / divider_sum;
+                xi(t,i,j) = (scaled_forward_messages(t,i));
+                xi(t,i,j) = xi(t,i,j)*hmm.dynamic(i,j);
+                xi(t,i,j) = xi(t,i,j)*hmm.observation(t+1);
+                xi(t,i,j) = xi(t,i,j)*scaled_backward_messages(t+1,j);
+                                %disp(divider_sum);
+                                %disp(xi(t,i,j));
+                if(divider_sum == 0)
+                    divider_sum = 1;
+                end
+                xi(t,i,j) = xi(t,i,j)/ divider_sum;
+                %disp(xi(t,i,j));
+                
+
+                
+                bool = xi(t,i,j) >= 0;
+                bool = bool + (xi(t,i,j) <= 0);
+                if(bool == 0)
+                    A = 3 / []
+                end
             end
         end
     end
@@ -118,30 +167,37 @@ while (convergence == false)
         teller = 0;
         nevner = 0;
         for t = 1:T
-            teller = teller + (gamma(t,j) * feature_file(t)); % Litt usikker på om det er selve feature_file(t) som skal brukes her eller observasjonsmodellen
+            teller = teller + (gamma(t,j) * hmm.observation(t)); % Litt usikker på om det er selve feature_file(t) som skal brukes her eller observasjonsmodellen
             nevner = nevner + (gamma(t,j));
         end
         hmm.my(j) = teller / nevner;
+        %disp('my');
+        %disp(hmm.my(j));
     end
     for j = 1:n
         teller = 0;
         nevner = 0;
         for t = 1:T
-            teller = teller + (gamma(t,j) * (feature_file(t) - hmm.my(j)) * (feature_file(t) - hmm.my(j))); % Tror ikke dette stemmer, men...
+            teller = teller + (gamma(t,j) * (hmm.observation(t) - hmm.my(j)) * (hmm.observation(t) - hmm.my(j))); % Tror ikke dette stemmer, men...
             nevner = nevner + gamma(t,j);
         end
         hmm.sigma(j) = teller / nevner;
+        %disp('sigma');
+        %disp(hmm.sigma(j));
     end
     
-    % Oppdaterer hmm.observations
+    % Oppdaterer hmm.observations DETTE MÅ FOR GUDS SKYLD IKKE GJØRES!
+    %{
     for t = 1:T
         for j = 1:n
             hmm.observation(t,j,j) = normpdf(feature_file(t),hmm.my(j),hmm.sigma(j));
         end
     end
+    %}
     
     % Sjekker om log-likelihood konvergerer
-    disp(log_lik);
+    %disp('log lik');
+    %disp(log_lik);
     if (abs(prior_log - log_lik) < 1)
         convergence = true;
     end
@@ -253,7 +309,7 @@ messages = F;
 end
 
 
-function messages = backward(model,n);
+function messages = backward(model,n)
     %init
     r = ones(length(model.observation),n);
     B = zeros(n,n);
@@ -324,7 +380,7 @@ function feature_list = spectralReadFromTable(feature_file,n)
         fouriertransformer(:,i) = fft(feature_buffer(:,i));
         fouriertransformer(:,i) = fouriertransformer(:,i).*conj(fouriertransformer(:,i));
         [peaks, valleys] = peakdet(fouriertransformer(:,i),0.1);
-        for j = 1:(size(peaks))(1)
+        for j = 1:(size(peaks))(1);
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
         end
     end
