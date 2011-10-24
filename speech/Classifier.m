@@ -1,20 +1,26 @@
 function Classifier(n)
 Left = hmm(n,'Left');
 Right = hmm(n,'Right');
-Start = hmm(n,'Start');
-Stop = hmm(n,'Go');
+Start = hmm(n,'Go');
+Stop = hmm(n,'Stop');
 
-correct = ['Stop','Left', 'Right','Start','Start','Stop','Left','Right','Start','Stop','Left','Right','Start','Stop','Left','Right','Start','Stop''Left','Right','Start','Stop','Left','Right','Start','Stop','Left','Right','Start','Stop','Left','Right','Start','Stop','Left','Right']
+%1: Left
+%2:Right
+%3:Start
+%4:Stop
+correct = [4,1,2,3,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2];
+%correct = ['Stop','Left', 'Right','Start','Start','Stop','Left','Right','Start','Stop','Left','Right','Start','Stop','Left','Right','Start','Stop''Left','Right','Start','Stop','Left','Right','Start','Stop','Left','Right','Start','Stop','Left','Right','Start','Stop','Left','Right'];
 
-models = [Left, Right, Stop,Start];
-names = ['Left','Right','Stop','Start'];
+models = [Left, Right, Start,Stop];
+names = [1,2,3,4];
+%names = ['Left','Right','Stop','Start'];
 probs = [0,0,0,0];
 
 results = zeros(35,1);
 
 for i=1:35
     probs = [0,0,0,0];
-    [trash obs] = spectralRead(strcat(['TestData\query_',int2str(i),'.wav']));
+    [trash obs] = spectralRead(strcat(['TestData\query_',int2str(i),'.wav']),n);
     for j=1:length(models)
         models(j).observation = obs;
         norms = forward(models(j),n);
@@ -22,6 +28,7 @@ for i=1:35
             probs(j) = probs(j) + norms(k);
         end
     end
+    %disp(probs);
     results(i) = calculateWord(names,probs);
 end
 
@@ -31,7 +38,8 @@ for i=1:35
         accuracy = accuracy + (1/35);
     end
 end
-
+%disp(correct);
+%disp(results);
 disp(accuracy);
 
 
@@ -40,13 +48,14 @@ end
 
 function winner = calculateWord(names,probs);
 highest = probs(1);
-winner = names(1);
-for i=2:length(list)
+winner = 1;
+for i=2:length(probs)
     if probs(i) > highest
         highest = probs(i);
-        winner = i;
+        winner = names(i);
     end
 end
+
 
 end
 
@@ -101,8 +110,9 @@ function [result, features] = spectralRead(file,n)
     AverageAmps = zeros(Size(2),1);
     States = zeros(Size(2),1);
     for i = 1:Size(2)
-        Fouriertransformer(:,i) = fft(Lydbuffer(:,i));
-        Fouriertransformer(:,i) = Fouriertransformer(:,i).*conj(Fouriertransformer(:,i));
+        %Fouriertransformer(:,i) = fft(Lydbuffer(:,i));
+        %Fouriertransformer(:,i) = Fouriertransformer(:,i).*conj(Fouriertransformer(:,i));
+        Fouriertransformer(:,i) = cceps(Lydbuffer(:,i));
         [peaks, valleys] = peakdet(Fouriertransformer(:,i),0.1);
         for j = 1:(size(peaks))(1);
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
