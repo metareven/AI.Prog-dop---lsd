@@ -66,7 +66,10 @@ F = zeros(length(model.observation),n);
 
 %regner ut observasjosverdiene for det første steget
 for i=1:n
-    f(i,i) = normpdf(model.observation(1),model.my(i),model.sigma(1));
+    %f(i,i) = normpdf(model.observation(1,1),model.my(i),model.sigma(1));
+    %disp(reshape(model.sigma(i,:,:),[3,3]));
+    temp = reshape(model.sigma(i,:,:),[3,3]);
+    f(i,i) = mvnpdf(model.observation(1,:),model.my(i,:),temp);
 end
 f = f * model.prior;
 
@@ -74,7 +77,11 @@ for i=1:length(f)
     l(1) = l(1)+ f(i);
 end
 %normaliserer
-f = f/l(1);
+if l(1) == 0
+    f = 0;
+else
+    f = f/l(1);
+end
 f = f';
 F(1,:) = f;
 
@@ -83,7 +90,8 @@ for i =2:length(model.observation)
     %regner ut observasjonsmatrisa for dette steget
     f = zeros(n);
     for j=1:n
-        f(j,j) = normpdf(model.observation(i),model.my(j),model.sigma(j));
+        %f(j,j) = normpdf(model.observation(i,1),model.my(j),model.sigma(j));
+        f(j,j) = mvnpdf(model.observation(i,:),model.my(j,:),reshape(model.sigma(j,:,:),[3,3]));
     end
 
     %fortsetter med formelen
@@ -93,8 +101,14 @@ for i =2:length(model.observation)
     for j=1:length(f)
         l(i) = l(i)+ f(j);
     end
-    f = f/l(i);
-    F(i,:) = f;
+    if (l(i) ~= 0)
+        f = f/l(i);
+    end
+    if isnan(f)
+        F(i,:) = 0;
+    else
+        F(i,:) = f;
+    end
 end
 
 messages = F;

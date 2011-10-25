@@ -4,8 +4,10 @@ function result = hmm(n, word)
 hmm.prior = zeros(n,1); % Prior model
 hmm.messages = zeros(n,1); % Forward messages
 hmm.norms = zeros(n,1); % Normalized messages
-hmm.sigma = zeros(n,1); % Sigma values used for the observation model
-hmm.my = zeros(n,1); % Mu values used for the observation model
+%hmm.sigma = zeros(n,1); % Sigma values used for the observation model
+hmm.sigma = zeros(n,3,3);
+%hmm.my = zeros(n,1); % Mu values used for the observation model
+hmm.my = zeros(n,3);
     for i=1:length(hmm.prior)
         hmm.prior(i) = 1/n;
     end
@@ -14,9 +16,15 @@ hmm.dynamic = createDynamicModel(n,word);
 
 % Initialiserer my og sigmaverdiene
 for i=1:n
-    hmm.my(i,1) = i; % Mu(i) = i
-    hmm.sigma(i,1) = 1; % Alle sigmaverdiene starter med å være lik 1
+    for d = 1:3
+        hmm.my(i,d) = i;
+        hmm.sigma(i,d,d) = 1;% Mu(i) = i
+    end
+    %hmm.sigma(i,1) = 1; % Alle sigmaverdiene starter med å være lik 1
 end
+%hmm.dist = cell(3,1);
+
+%hmm.dist = [gmdistribution(hmm.my(i,:),reshape(hmm.sigma(i,:,:),[3,3])),gmdistribution(hmm.my(i,:),reshape(hmm.sigma(i,:,:),[3,3])),gmdistribution(hmm.my(i,:),reshape(hmm.sigma(i,:,:),[3,3]))];
 
 % Samler alle features fra rammene fra et ord i en stor tabell
 feature_file = wavread(['Training Data\','',word,'','_0.wav']);
@@ -27,13 +35,17 @@ for i = 1:25,
     feature_file = [temp new_temp].';
 end
 
-feature_file = spectralReadFromTable(feature_file,n);
-feature_file = abs(feature_file);
+temp = spectralReadFromTable(feature_file,n);
+temp = abs(temp);
+feature_file = zeros(length(temp),3);
+feature_file(:,1) = temp(:,1);
+feature_file(:,2) = temp(:,2);
+feature_file(:,3) = temp(:,3);
 
 T = length(feature_file);
 
 hmm.observation = feature_file;
-disp(size(feature_file));
+%disp(size(feature_file));
 % eksempelTest(hmm);
 % disp('Success');
 
@@ -58,15 +70,21 @@ prior_log = 999999999;
 convergence = false;
 
 counter = 0;
-while (convergence == false)
-    disp('counter');
+while ((convergence == false) && (counter < 30))
+    %disp('counter');
     disp(counter);
-    disp('-----');
+    %disp('-----');
     
-    disp('my values');
-    disp(hmm.my);
-    disp('sigma values');
-    disp(hmm.sigma);
+    %disp('my values');
+    %disp(hmm.my);
+    %disp('sigma values');
+    %disp(hmm.sigma);
+    
+    %{
+    for i = 1:n
+        hmm.dist(i,1) = gmdistribution(hmm.my(i,:),reshape(hmm.sigma(i,:,:),[3,3]));
+    end
+    %}
     
     counter = counter + 1;
     % Starter med å gjøre Forward og backward med den nåværende modellen og
@@ -91,10 +109,13 @@ while (convergence == false)
             divider_sum = divider_sum + (scaled_forward_messages(t,i) * scaled_backward_messages(t,i));
         end
         if(divider_sum == 0)
-            divider_sum = 1;
-        end
-        for j=1:n
-            gamma(t,j) = (scaled_forward_messages(t,j) * scaled_backward_messages(t,j)) / divider_sum;
+            for j = 1:n
+                gamma(t,j) = 0;
+            end
+        else
+            for j=1:n
+                gamma(t,j) = (scaled_forward_messages(t,j) * scaled_backward_messages(t,j)) / divider_sum;
+            end
         end
     end
     % Regner ut xi-verdier
@@ -110,7 +131,8 @@ while (convergence == false)
                 end
                 %}
                 %divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*hmm.observation(t+1,l,l)*scaled_backward_messages(t+1,l));
-                divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*normpdf(hmm.observation(t+1),hmm.my(l),hmm.sigma(l))*scaled_backward_messages(t+1,l));
+                %divider_sum = divider_sum + (scaled_forward_messages(t,k)*hmm.dynamic(k,l)*normpdf(hmm.observation(t+1,1),hmm.my(l),hmm.sigma(l))*scaled_backward_messages(t+1,l));
+                divider_sum = divider_sum + (scaled_forward_messages(t,l)*hmm.dynamic(k,l)*mvnpdf(hmm.observation(t+1,:),hmm.my(l,:),reshape(hmm.sigma(l,:,:),[3,3]))*scaled_backward_messages(t+1,l));
             end
         end
         for i = 1:n
@@ -125,16 +147,18 @@ while (convergence == false)
                 %xi(t,i,j) = (scaled_forward_messages(t,i)*hmm.dynamic(i,j)*hmm.observation(t+1,j,j)*scaled_backward_messages(t+1,j)) / divider_sum;
                 xi(t,i,j) = (scaled_forward_messages(t,i));
                 xi(t,i,j) = xi(t,i,j)*hmm.dynamic(i,j);
-                xi(t,i,j) = xi(t,i,j)*normpdf(hmm.observation(t+1),hmm.my(j),hmm.sigma(j));
+                %xi(t,i,j) = xi(t,i,j)*normpdf(hmm.observation(t+1,1),hmm.my(j),hmm.sigma(j));
+                xi(t,i,j) = xi(t,i,j) * mvnpdf(hmm.observation(t+1,:), hmm.my(j,:),reshape(hmm.sigma(j,:,:),[3,3]));
                 xi(t,i,j) = xi(t,i,j)*scaled_backward_messages(t+1,j);
                                 %disp(divider_sum);
                                 %disp(xi(t,i,j));
                 if(divider_sum == 0)
-                    divider_sum = 1;
+                    xi(t,i,j) = 0;
+                else
+                    catcher = xi(t,i,j);
+                    xi(t,i,j) = xi(t,i,j)/ divider_sum;
+                    %disp(xi(t,i,j));
                 end
-                catcher = xi(t,i,j);
-                xi(t,i,j) = xi(t,i,j)/ divider_sum;
-                %disp(xi(t,i,j));
                 
 
                 
@@ -172,24 +196,42 @@ while (convergence == false)
     end
     % Oppdaterer verdier for my og sigma ved å bruke likninger 53 og 54
     for j = 1:n
-        teller = 0;
+        teller = zeros(1,3);
         nevner = 0;
         for t = 1:T
-            teller = teller + (gamma(t,j) * hmm.observation(t)); % Litt usikker på om det er selve feature_file(t) som skal brukes her eller observasjonsmodellen
+            teller = teller + (gamma(t,j) * hmm.observation(t,:)); % Litt usikker på om det er selve feature_file(t) som skal brukes her eller observasjonsmodellen
             nevner = nevner + (gamma(t,j));
         end
-        hmm.my(j) = teller / nevner;
+        if nevner == 0
+            hmm.my(j,:) = [0,0,0];
+        else
+            hmm.my(j,:) = teller / nevner;
+        end
         %disp('my');
         %disp(hmm.my(j));
     end
     for j = 1:n
-        teller = 0;
+        teller = zeros(3,3);
         nevner = 0;
         for t = 1:T
-            teller = teller + (gamma(t,j) * (hmm.observation(t) - hmm.my(j)) * (hmm.observation(t) - hmm.my(j))); % Tror ikke dette stemmer, men...
+            teller = teller + (gamma(t,j) * (hmm.observation(t,:) - hmm.my(j,:)) * (hmm.observation(t,:) - hmm.my(j,:))'); % Tror ikke dette stemmer, men...
             nevner = nevner + gamma(t,j);
         end
-        hmm.sigma(j) = teller / nevner;
+        if nevner == 0
+            hmm.sigma(j,:,:) = zeros(3,3);
+        else
+            test =  teller / nevner;
+            for x = 1:3
+                for y = 1:3
+                    hmm.sigma(j,x,y) = test(x,y);
+                end
+            end
+        end
+        temp = zeros(3,3);
+        for v = 1:3
+            temp(v,v) = hmm.sigma(j,v,v);
+        end
+        hmm.sigma(j,:,:) = temp;
         %disp('sigma');
         %disp(hmm.sigma(j));
     end
@@ -278,7 +320,10 @@ F = zeros(length(model.observation),n);
 
 %regner ut observasjosverdiene for det første steget
 for i=1:n
-    f(i,i) = normpdf(model.observation(1),model.my(i),model.sigma(1));
+    %f(i,i) = normpdf(model.observation(1,1),model.my(i),model.sigma(1));
+    %disp(reshape(model.sigma(i,:,:),[3,3]));
+    temp = reshape(model.sigma(i,:,:),[3,3]);
+    f(i,i) = mvnpdf(model.observation(1,:),model.my(i,:),temp);
 end
 f = f * model.prior;
 
@@ -286,7 +331,11 @@ for i=1:length(f)
     l(1) = l(1)+ f(i);
 end
 %normaliserer
-f = f/l(1);
+if l(1) == 0
+    f = [0.5 0; 0 0.5];
+else
+    f = f/l(1);
+end
 f = f';
 F(1,:) = f;
 
@@ -295,7 +344,8 @@ for i =2:length(model.observation)
     %regner ut observasjonsmatrisa for dette steget
     f = zeros(n);
     for j=1:n
-        f(j,j) = normpdf(model.observation(i),model.my(j),model.sigma(j));
+        %f(j,j) = normpdf(model.observation(i,1),model.my(j),model.sigma(j));
+        f(j,j) = mvnpdf(model.observation(i,:),model.my(j,:),reshape(model.sigma(j,:,:),[3,3]));
     end
 
     %fortsetter med formelen
@@ -308,7 +358,11 @@ for i =2:length(model.observation)
     if (l(i) ~= 0)
         f = f/l(i);
     end
-    F(i,:) = f;
+    if isnan(f)
+        F(i,:) = 0;
+    else
+        F(i,:) = f;
+    end
 end
 
 messages = F;
@@ -321,15 +375,24 @@ function messages = backward(model,n)
     %init
     r = ones(length(model.observation),n);
     B = zeros(n,n);
-    r(length(r),:) = r(length(r),:)/model.norms(length(r));
+    if model.norms(length(r)) == 0
+        r(length(r),:) = 0;
+    else
+        r(length(r),:) = r(length(r),:)/model.norms(length(r));
+    end
     %induksjon
     for i=length(model.observation)-1:-1:1
         %regner ut observasjonsmatrisa for dette steget
         for j=1:n
-            B(j,j) = normpdf(model.observation(i),model.my(j),model.sigma(j));
+            %B(j,j) = normpdf(model.observation(i),model.my(j),model.sigma(j));
+            B(j,j) = mvnpdf(model.observation(i,:),model.my(j,:),reshape(model.sigma(j,:,:),[3,3]));
         end
         r(i,:) = model.dynamic * B * r(i+1,:)';
-        r(i,:) = r(i,:) / model.norms(i);
+        if model.norms(i) == 0
+            r(i,:) = 0;
+        else
+            r(i,:) = r(i,:) / model.norms(i);
+        end
     end
     messages = r;
     % disp(r);
@@ -360,7 +423,7 @@ function [result, features] = spectralRead(file,n)
         %Fouriertransformer(:,i) = fft(Lydbuffer(:,i));
         Fouriertransformer(:,i) = cceps(Lydbuffer(:,i));
         %Fouriertransformer(:,i) = Fouriertransformer(:,i).*conj(Fouriertransformer(:,i));
-        [peaks, valleys] = peakdet(Fouriertransformer(:,i),0.1);
+        [peaks, valleys] = peakdet(Fouriertransformer(:,i),0.01);
         for j = 1:(size(peaks))(1);
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
             if(peaks(j,2) > HighestAmps(i))
@@ -417,7 +480,7 @@ function feature_list = spectralReadFromTable(feature_file,n)
         %fouriertransformer(:,i) = fft(feature_buffer(:,i));
         %fouriertransformer(:,i) = fouriertransformer(:,i).*conj(fouriertransformer(:,i));
         fouriertransformer(:,i) = cceps(feature_buffer(:,i));
-        [peaks, valleys] = peakdet(fouriertransformer(:,i),0.1);
+        [peaks, valleys] = peakdet(fouriertransformer(:,i),0.01);
         for j = 1:(size(peaks))(1);
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
             if(peaks(j,2) > HighestAmps(i))
