@@ -36,7 +36,7 @@ for i=1:35
     end
     %disp(probs);
     %disp('--');
-    %results(i) = calculateWord(names,probs);
+    results(i) = calculateWord(names,probs);
 end
 
 accuracy = 0;
@@ -46,7 +46,7 @@ for i=1:35
     end
 end
 %disp(correct);
-disp(results);
+%disp(results);
 disp(accuracy);
 
 
