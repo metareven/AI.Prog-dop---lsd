@@ -70,8 +70,7 @@ prior_log = 999999999;
 convergence = false;
 
 counter = 0;
-maxCount = 50/n;
-while ((convergence == false) && (counter < maxCount) && ~(strcmp(word, 'Stop')))
+while ((convergence == false) && (counter < 30) && ~(strcmp(word, 'Stop')))
     %disp('counter');
     disp(counter);
     %disp('-----');
@@ -333,7 +332,7 @@ for i=1:length(f)
 end
 %normaliserer
 if l(1) == 0
-    f = [0.5 0; 0 0.5];
+    f = 0;
 else
     f = f/l(1);
 end
