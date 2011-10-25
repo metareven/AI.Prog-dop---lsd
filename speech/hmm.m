@@ -224,7 +224,7 @@ function dyn = createDynamicModel(n,word)
     %leser alle filene med training data fra ordet 'word' og sjekker hvor
     %ofte man går fra en gitt state til en annen
     for i=0:25
-       temp = spectralRead(strcat('Training Data\',word,'_',num2str(i),'.','wav'),n);
+       [temp,trash] = spectralRead(strcat('Training Data\',word,'_',num2str(i),'.','wav'),n);
        for j=1:length(temp) -1
            from = temp(j);
            to = temp(j+1);
@@ -344,13 +344,25 @@ function [result, features] = spectralRead(file,n)
     Fouriertransformer = zeros(Size(1), Size(2));
     AverageAmps = zeros(Size(2),1);
     States = zeros(Size(2),1);
+    HighestAmps = zeros(Size(2),1);
+    Crossings = zeros(Size(2),1);
     for i = 1:Size(2)
+        direction = 1;
+        for x=1:length(Lydbuffer(:,i))
+            if(Lydbuffer(x,i) * direction < 0)
+                Crossings(i) = Crossings(i) +1;
+                direction = direction *-1;
+            end
+        end 
         %Fouriertransformer(:,i) = fft(Lydbuffer(:,i));
         Fouriertransformer(:,i) = cceps(Lydbuffer(:,i));
         %Fouriertransformer(:,i) = Fouriertransformer(:,i).*conj(Fouriertransformer(:,i));
         [peaks, valleys] = peakdet(Fouriertransformer(:,i),0.1);
         for j = 1:(size(peaks))(1);
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
+            if(peaks(j,2) > HighestAmps(i))
+                HighestAmps(i) = peaks(j,2);
+            end
         end
         
     end
@@ -371,7 +383,7 @@ function [result, features] = spectralRead(file,n)
             end
         end
     end
-    features = AverageAmps;
+    features = [AverageAmps,HighestAmps,Crossings];
     for i=1:length(States)
         if States(i) == 0
             States(i) = n;
@@ -385,14 +397,27 @@ function feature_list = spectralReadFromTable(feature_file,n)
     feature_size = size(feature_buffer);
     fouriertransformer = zeros(feature_size(1), feature_size(2));
     AverageAmps = zeros(feature_size(2), 1);
+    HighestAmps = zeros(feature_size(2),1);
+    Crossings = zeros(feature_size(2), feature_size(1));
     for i = 1:feature_size(2);
+        direction = 1;
+        for x=1:length(feature_buffer(:,i))
+            if(feature_buffer(x,i) * direction < 0)
+                Crossings(i) = Crossings(i) +1;
+                direction = direction *-1;
+            end
+        end
         %fouriertransformer(:,i) = fft(feature_buffer(:,i));
         %fouriertransformer(:,i) = fouriertransformer(:,i).*conj(fouriertransformer(:,i));
         fouriertransformer(:,i) = cceps(feature_buffer(:,i));
         [peaks, valleys] = peakdet(fouriertransformer(:,i),0.1);
         for j = 1:(size(peaks))(1);
             AverageAmps(i) = AverageAmps(i) + (peaks(j,2));
+            if(peaks(j,2) > HighestAmps(i))
+                HighestAmps(i) = peaks(j,2);
+            end
         end
+            
     end
     normalizer = 0;
     for i = 1:length(AverageAmps),
@@ -411,6 +436,6 @@ function feature_list = spectralReadFromTable(feature_file,n)
             end
         end
     end
-    feature_list = AverageAmps;
+    feature_list = [AverageAmps,HighestAmps,Crossings];
 
 end
