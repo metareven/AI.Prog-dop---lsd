@@ -70,7 +70,8 @@ prior_log = 999999999;
 convergence = false;
 
 counter = 0;
-while ((convergence == false) && (counter < 30))
+maxCount = 50/n;
+while ((convergence == false) && (counter < maxCount) && ~(strcmp(word, 'Stop')))
     %disp('counter');
     disp(counter);
     %disp('-----');
