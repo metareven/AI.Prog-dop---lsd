@@ -33,7 +33,7 @@ feature_file = abs(feature_file);
 T = length(feature_file);
 
 hmm.observation = feature_file;
-
+disp(size(feature_file));
 % eksempelTest(hmm);
 % disp('Success');
 
@@ -336,7 +336,10 @@ function messages = backward(model,n)
 end
 
 
-
+%Features er slik: 
+%features(:,1) = average amps
+%features(:,2) = Highest amps
+%features(:,3) = Crossings
 function [result, features] = spectralRead(file,n)
     Lyd = wavread(file);
     Lydbuffer = buffer(Lyd, 80);
@@ -392,6 +395,10 @@ function [result, features] = spectralRead(file,n)
     result = States;
 end
 
+%Features er slik: 
+%features(:,1) = average amps
+%features(:,2) = Highest amps
+%features(:,3) = Crossings
 function feature_list = spectralReadFromTable(feature_file,n)
     feature_buffer = buffer(feature_file,80);
     feature_size = size(feature_buffer);
@@ -437,5 +444,6 @@ function feature_list = spectralReadFromTable(feature_file,n)
         end
     end
     feature_list = [AverageAmps,HighestAmps,Crossings];
+    
 
 end
