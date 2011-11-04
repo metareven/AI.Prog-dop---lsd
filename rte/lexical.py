@@ -1,5 +1,6 @@
 import xml.dom.minidom
 
+# This is the function used for task 1 in the RTE project
 def word_matching():
     return 0
 
@@ -17,19 +18,38 @@ def get_text_pairs_from_pair_nodes(pair_nodes):
         pairs.append((text,hypothesis))
     return pairs
 
+# Takes a dom as input and returns a list of element nodes with name "pair"
 def get_pair_nodes(doc):
     pairs = doc.getElementsByTagName("pair")
     return pairs
 
+# Formats the strings in a t/h pair so that each sentence string is replaced with a list of words that has
+# been stripped of "." and "," as well as being changed to lower case.
+def format_strings(pair):
+    t,h = pair
+    text = t.split(" ")
+    hypothesis = h.split(" ")
+    for w in text:
+        w = w.strip(",")
+        w = w.strip(".")
+        w = w.lower()
+    for w in hypothesis:
+        w = w.strip(",")
+        w = w.strip(".")
+        w.lower()
+    return (text,hypothesis)
+        
 
 # Main method for testing purposes
 def main():
     test_document = get_a_document_from_file("data/RTE2_dev.xml")
     pair_nodes = get_pair_nodes(test_document)
     pairs = get_text_pairs_from_pair_nodes(pair_nodes)
-    print len(pairs)
-    print pairs[0]
-    print pairs[len(pairs)-1]
+    for i in range(len(pairs)):
+        pairs[i] = format_strings(pairs[i])
+    h,t = pairs[0]
+    print h
+    print t
 
 if __name__ == '__main__':
     main()
