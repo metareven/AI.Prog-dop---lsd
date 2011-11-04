@@ -1,7 +1,7 @@
 import xml.dom.minidom
 
-# This is the function used for task 1 in the RTE project
 def word_matching():
+    """ This is the function used for task 1 in the RTE project """
     return 0
 
 # Function for reading an xml document from file
@@ -27,18 +27,36 @@ def get_pair_nodes(doc):
 # been stripped of "." and "," as well as being changed to lower case.
 def format_strings(pair):
     t,h = pair
-    text = t.split(" ")
-    hypothesis = h.split(" ")
-    for w in text:
+    text = []
+    hypothesis = []
+    for w in t.split(" "):
         w = w.strip(",")
         w = w.strip(".")
         w = w.lower()
-    for w in hypothesis:
+        text.append(w)
+    for w in h.split(" "):
         w = w.strip(",")
         w = w.strip(".")
-        w.lower()
+        w = w.lower()
+        hypothesis.append(w)
     return (text,hypothesis)
         
+def calculate_entailment(pair, threshold):
+    text,hypothesis = pair
+    #print "text" + "\n"
+    #print text
+    #print "hypothesis" + "\n"
+    #print hypothesis
+    matching_words = 0
+    for word in hypothesis:
+        if word in text:
+            matching_words += 1
+    entails = (float(matching_words) / float(len(hypothesis)))
+    print "entails: " + str(entails)
+    if entails > threshold:
+        return "YES"
+    else:
+        return "NO"
 
 # Main method for testing purposes
 def main():
@@ -47,9 +65,10 @@ def main():
     pairs = get_text_pairs_from_pair_nodes(pair_nodes)
     for i in range(len(pairs)):
         pairs[i] = format_strings(pairs[i])
-    h,t = pairs[0]
-    print h
-    print t
+    threshold = 0.70
+    for i in range(10):
+        print calculate_entailment(pairs[i],threshold)
+    
 
 if __name__ == '__main__':
     main()
