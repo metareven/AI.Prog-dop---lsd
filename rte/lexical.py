@@ -1,32 +1,48 @@
 import xml.dom.minidom
+import xml_util
+from sys import stdout
 
-def word_matching():
+def threshold_iterator(threshold):
+    document = xml_util.get_dom_from_xml("data/RTE2_dev.xml")
+    pair_nodes = xml_util.get_pair_nodes(document)
+    pair_attributes = xml_util.get_attributes_from_pair_nodes(pair_nodes)
+    if threshold == -1:
+        for i in range(100):
+            threshold = 1.0 - (0.01 * i)
+            word_matching(threshold, pair_attributes)
+    else:
+        word_matching(threshold,pair_attributes)
+    
+    
+
+def word_matching(threshold, pairs):
     """ This is the function used for task 1 in the RTE project """
-    return 0
+    pair_attributes = pairs[:]
+    n = len(pair_attributes) # Number of pair attributes
+    for i in range(n):
+        pair_attributes[i] = format_strings(pair_attributes[i])
+    results = [0 for foo in range(n+1)]
+    for i in range(n):
+        t,h,id_num,e = pair_attributes[i]
+        if (e == calculate_entailment(t,h,threshold)):
+            results[id_num] = 1
+        else:
+            results[id_num] = 0
+    #print "Threshold: " + "%.2f"%threshold + " Accuracy: " + str(float(float(sum(results)) / (float(n))))
+    output_rte(results)
 
-# Function for reading an xml document from file
-# Takes the url of an xml document as input and returns a dom instance of the xml
-def get_a_document_from_file(file_object):
-    return xml.dom.minidom.parse(file_object)
-
-# Takes a list of elements nodes with name "pair" and returns a list of string pairs (text, hypotesis)
-def get_text_pairs_from_pair_nodes(pair_nodes):
-    pairs = []
-    for pair in pair_nodes:
-        text = pair.getElementsByTagName("t")[0].childNodes[0].nodeValue
-        hypothesis = pair.getElementsByTagName("h")[0].childNodes[0].nodeValue
-        pairs.append((text,hypothesis))
-    return pairs
-
-# Takes a dom as input and returns a list of element nodes with name "pair"
-def get_pair_nodes(doc):
-    pairs = doc.getElementsByTagName("pair")
-    return pairs
+def output_rte(results):
+    stdout.write("ranked: no" + "\n")
+    for i in range(1,len(results)):
+        if results[i] == 0:
+            stdout.write(str(i) + " " + "NO" + "\n")
+        else:
+            stdout.write(str(i) + " " + "YES" "\n")
 
 # Formats the strings in a t/h pair so that each sentence string is replaced with a list of words that has
 # been stripped of "." and "," as well as being changed to lower case.
 def format_strings(pair):
-    t,h = pair
+    t,h,i,e = pair
     text = []
     hypothesis = []
     for w in t.split(" "):
@@ -39,20 +55,19 @@ def format_strings(pair):
         w = w.strip(".")
         w = w.lower()
         hypothesis.append(w)
-    return (text,hypothesis)
+    return (text,hypothesis,int(i),e)
         
-def calculate_entailment(pair, threshold):
-    text,hypothesis = pair
-    #print "text" + "\n"
-    #print text
-    #print "hypothesis" + "\n"
-    #print hypothesis
+def calculate_entailment(text,hypothesis,threshold):
     matching_words = 0
+    #new_hyp = []
+    #for word in hypothesis:
+    #    if word not in new_hyp:
+    #        new_hyp.append(word)
+    #hypothesis = new_hyp[:]
     for word in hypothesis:
         if word in text:
             matching_words += 1
     entails = (float(matching_words) / float(len(hypothesis)))
-    print "entails: " + str(entails)
     if entails > threshold:
         return "YES"
     else:
@@ -60,15 +75,7 @@ def calculate_entailment(pair, threshold):
 
 # Main method for testing purposes
 def main():
-    test_document = get_a_document_from_file("data/RTE2_dev.xml")
-    pair_nodes = get_pair_nodes(test_document)
-    pairs = get_text_pairs_from_pair_nodes(pair_nodes)
-    for i in range(len(pairs)):
-        pairs[i] = format_strings(pairs[i])
-    threshold = 0.70
-    for i in range(10):
-        print calculate_entailment(pairs[i],threshold)
-    
+    threshold_iterator(0.61) # Calculates the accuracy for different thresholds if arg is -1, uses the arg as threshold otherwise
 
 if __name__ == '__main__':
     main()
