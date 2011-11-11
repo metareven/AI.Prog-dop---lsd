@@ -34,8 +34,10 @@ def get_attributes_from_preprocessed_pair_nodes(pair_nodes):
         pairs.append((text,hypothesis,id_number,entailment,task))
     return pairs
 
+# Returns a pair with two lists (lemmas, pos-tags)
 def get_lemmas_from_text_node(text):
     lemmas = []
+    pos = []
     nodes = text[1].getElementsByTagName("node")
     valid_nodes = []
     for n in nodes:
@@ -43,5 +45,7 @@ def get_lemmas_from_text_node(text):
             valid_nodes.append(n)
     for l in valid_nodes:
         lemma = l.getElementsByTagName("lemma")
+        p = l.getElementsByTagName("pos-tag")
         lemmas.append(lemma[0].childNodes[0].nodeValue.strip())
-    return lemmas
+        pos.append(p[0].childNodes[0].nodeValue.strip())
+    return (lemmas,pos)
