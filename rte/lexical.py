@@ -22,22 +22,21 @@ def word_matching(threshold, pairs):
     for i in range(n):
         pair_attributes[i] = format_strings(pair_attributes[i])
     results = [0 for foo in range(n+1)]
+    entailments = [0 for foo in range(n+1)]
     for i in range(n):
         t,h,id_num,e = pair_attributes[i]
-        if (e == calculate_entailment(t,h,threshold)):
+        entailments[id_num] = calculate_entailment(t,h,threshold)
+        if (e == entailments[id_num]):
             results[id_num] = 1
         else:
             results[id_num] = 0
-    #print "Threshold: " + "%.2f"%threshold + " Accuracy: " + str(float(float(sum(results)) / (float(n))))
-    output_rte(results)
+    print "Threshold: " + "%.2f"%threshold + " Accuracy: " + str(float(float(sum(results)) / (float(n))))
+    #output_rte(entailments)
 
-def output_rte(results):
+def output_rte(entailments):
     stdout.write("ranked: no" + "\n")
-    for i in range(1,len(results)):
-        if results[i] == 0:
-            stdout.write(str(i) + " " + "NO" + "\n")
-        else:
-            stdout.write(str(i) + " " + "YES" "\n")
+    for i in range(1,len(entailments)):
+        stdout.write(str(i) + " " + entailments[i]  + "\n")
 
 # Formats the strings in a t/h pair so that each sentence string is replaced with a list of words that has
 # been stripped of "." and "," as well as being changed to lower case.
@@ -59,11 +58,11 @@ def format_strings(pair):
         
 def calculate_entailment(text,hypothesis,threshold):
     matching_words = 0
-    #new_hyp = []
-    #for word in hypothesis:
-    #    if word not in new_hyp:
-    #        new_hyp.append(word)
-    #hypothesis = new_hyp[:]
+    new_hyp = []
+    for word in hypothesis:
+        if word not in new_hyp:
+            new_hyp.append(word)
+    hypothesis = new_hyp[:]
     for word in hypothesis:
         if word in text:
             matching_words += 1
