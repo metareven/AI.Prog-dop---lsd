@@ -29,11 +29,11 @@ def lemma_matching(threshold, pairs):
             results[id_num] = 1
         else:
             results[id_num] = 0
-    print "Threshold: " + "%.2f"%threshold + " Accuracy: " + str(float(sum(results)) / float(n))
-    #lexical.output_rte(entailments)
+    #print "Threshold: " + "%.2f"%threshold + " Accuracy: " + str(float(sum(results)) / float(n))
+    lexical.output_rte(entailments)
 
 def main():
-    threshold_iterator(-1) # Calculates the accuracy for different thresholds if arg is -1, uses the arg as threshold otherwise
+    threshold_iterator(0.61) # Calculates the accuracy for different thresholds if arg is -1, uses the arg as threshold otherwise
         
         
 if __name__ == "__main__":

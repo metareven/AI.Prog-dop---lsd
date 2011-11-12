@@ -49,7 +49,7 @@ def calculate_entailment(text, hypothesis, threshold):
         return "NO"
 
 def main():
-    threshold_iterator(0.8) # Calculates the accuracy for different thresholds if arg is -1, uses the arg as threshold otherwise
+    threshold_iterator(0.63) # Calculates the accuracy for different thresholds if arg is -1, uses the arg as threshold otherwise
 
 if __name__ == '__main__':
     main()
