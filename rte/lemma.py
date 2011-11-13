@@ -23,7 +23,7 @@ def lemma_matching(threshold, pairs):
         t,h,id_num,e,ta = pair_attributes[i]
         id_num = int(id_num)
         t_lemmas,pos = xml_util.get_lemmas_from_text_node(t)
-        h_lemmas,pos = xml_util.get_lemmas_from_text_node(h)results = [0 for foo in range(n+1)]
+        h_lemmas,pos = xml_util.get_lemmas_from_text_node(h)
     entailments = [0 for foo in range(n+1)]
     for i in range(n):
         t,h,id_num,e,ta = pair_attributes[i]
