@@ -54,8 +54,8 @@ def idf_weighting(threshold, pairs):
         h_lemmas,pos = xml_util.get_lemmas_from_text_node(h)
         entailments[id_num] = calculate_entailment(t_lemmas,h_lemmas,idf_dict,threshold)
         results[id_num] = 1 if e == entailments[id_num] else 0
+    lexical.output_rte(entailments)
     print "Threshold: " + "%.2f"%threshold + " Accuracy: " + str(float(sum(results)) / float(n))
-    #lexical.output_rte(entailments)
     
 def calculate_entailment(text, hypothesis, idf_dict, threshold):
     idf_counter = 0.0
@@ -68,6 +68,7 @@ def calculate_entailment(text, hypothesis, idf_dict, threshold):
     return "YES" if idf_word_match > threshold else "NO"
 
 def main():
+    # Optimal threshold is 0.61
     threshold_iterator(0.61)
 
 if __name__ == '__main__':
