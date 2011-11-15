@@ -49,3 +49,28 @@ def get_lemmas_from_text_node(text):
         lemmas.append(lemma[0].childNodes[0].nodeValue.strip())
         pos.append(p[0].childNodes[0].nodeValue.strip())
     return (lemmas,pos)
+
+# These functions are used for part 2 of the project 
+def get_pairs(text):
+    return text.getElementsByTagName("pair")
+
+def get_minipar_values_from_text_node(text):
+    node_values = []
+    nodes = text[1].getElementsByTagName("node")
+    for n in nodes:
+        n_id = n.getAttributeNode("id").value
+        lemmas = n.getElementsByTagName("lemma")
+        if len(lemmas) > 0:
+            lemma = n.getElementsByTagName("lemma")[0].childNodes[0].nodeValue.strip()
+        else:
+            lemma = unicode("fin")
+        parent = n.getElementsByTagName("relation")
+        if len(parent) > 0:
+            parent_id = n.getElementsByTagName("relation")[0].getAttributeNode("parent").value
+        else:
+            parent_id = unicode("-1")
+        node_values.append((n_id,parent_id,lemma))
+    return node_values
+        
+        
+        
