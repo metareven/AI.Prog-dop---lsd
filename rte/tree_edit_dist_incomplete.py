@@ -128,13 +128,29 @@ def postorder(root_node):
     # Cf.  Zhang & Shasha:p.1249:
     # "Let T[I] be the ith node in the tree according to the left-to-right
     # postordering"
-        
-    raise NotImplementedError()
-    #*************************************************************************
-    #
-    #     Your implementation goes here
-    #
-    #*************************************************************************
+
+    # Each element of the stack includes a tuple with (node,flag) where
+    # flag can be True of False depending on whether this node has been
+    # inspected already or not
+    stack = [(root_node,False)]
+    ordering = [] # The ordering that is to be returned
+
+    while stack:
+        current,flag = stack.pop()
+        if len(current) == 0:
+            ordering.append(current)
+        else:
+            if flag:
+                ordering.append(current)
+            else:
+                children = [c for c in current]
+                children.reverse()
+                stack.append((current,True))
+                for c in children:
+                    stack.append((c,False))
+    return ordering
+
+
     
     
 def leftmost_leaf_descendant_indices(node_list):
@@ -146,12 +162,21 @@ def leftmost_leaf_descendant_indices(node_list):
     # "l(i) is the number of the leftmost leaf descendant of the subtree
     # rooted at T[i]. When T[i] is a leaft, l(i)=i."
     
-    raise NotImplementedError()
-    #*************************************************************************
-    #
-    #    Your implementation goes here
-    #
-    #*************************************************************************
+
+    # The dictionary is used to be able to get a node's left child's
+    # index in node_list
+    temp_dict = {}
+    for i in range(len(node_list)):
+        temp_dict[node_list[i].label] = i
+
+    l = [0 for i in range(len(node_list))]
+
+    for i in range(len(node_list)):
+        if node_list[i].is_leaf():
+            l[i] = i
+        else:
+            l[i] = l[temp_dict[node_list[i].left_child().label]]
+    return l
         
         
         
@@ -163,13 +188,12 @@ def key_root_indices(lld_indices):
     # Cf. Zhang & Shasha:p.1251: "LR_keyroots(T) = {k| there exists no k'>k
     # such that l(k)=l(k')}
     
-    raise NotImplementedError()
-    #*************************************************************************
-    #
-    #    Your implementation goes here
-    #
-    #*************************************************************************
-    
+    key_roots = []
+    for i in range(len(lld_indices)):
+        rest = lld_indices[i+1:]
+        if not lld_indices[i] in rest:
+            key_roots.append(i)
+    return key_roots
     
     
 def distance(t1, t2, costs=unit_costs):
@@ -198,12 +222,25 @@ def distance(t1, t2, costs=unit_costs):
             FD[ None, (l2[j],m) ] = ( FD[ None, (l2[j],m-1) ] + 
                                       costs(None, T2[m].label) )
             
-        raise NotImplementedError()
-        #*************************************************************************
+        #***************************************************************
+        #                      Own implementation
+        
+        for i1 in range(l1[i], i+1):
+            for j1 in range(l2[j], j+1):
+                if l1[i1] == l1[i] and l2[j1] == l2[j]:
+                    val1 = FD[ (l1[i],i1-1), (l2[j],j1)   ] + costs(T1[i1], None)
+                    val2 = FD[ (l1[i],i1)  , (l2[j],j1-1) ] + costs(None  , T2[j1])
+                    val3 = FD[ (l1[i],i1-1), (l2[j],j1-1) ] + costs(T1[i1], T2[j1])
+                    FD[ (l1[i],i1), (l2[j],j1) ] = min(val1,val2,val3)
+                    TD[i1,j1] = FD[ (l1[i],i1), (l2[j],j1) ] # Put in permanent array
+                else:
+                    val1 = FD[ (l1[i],i1-1), (l2[j],j1)   ] + costs(T1[i1], None)
+                    val2 = FD[ (l1[i],i1)  , (l2[j],j1-1) ] + costs(None  , T2[j1])
+                    val3 = FD[ (l1[i],l1[i1]-1), (l2[j],l2[j1]-1) ] + TD[i1,j1]
+                    FD[ (l1[i],i1), (l2[j],j1) ] = min(val1,val2,val3)
+            
         #
-        #    Your implementation of the final part of edit_dist goes here
-        #
-        #*************************************************************************
+        #***************************************************************
                     
         return TD[i,j]
     
@@ -244,7 +281,7 @@ def print_matrix(T1, T2, TD):
 
     
         
-if __name__ is "__main__":
+if __name__ == "__main__":
     # Cf. Zhang & Shasha: Fig. 4 and Fig. 8
     
     t1 = Node("f",
