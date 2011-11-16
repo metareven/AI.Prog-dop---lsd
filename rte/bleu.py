@@ -56,14 +56,15 @@ def bleu_matching(threshold, pairs):
         entailments[id_num] = calculate_entailment(t_lemmas,h_lemmas,threshold)
         if e == entailments[id_num]:
             results[id_num] = 1
+    lexical.output_rte(entailments)
     print "Threshold: " + "%.2f"%threshold + " Accuracy: " + str(float(sum(results)) / float(n))
-    #lexical.output_rte(entailments)
 
 def calculate_entailment(text, hypothesis, threshold):
     return "YES" if modified_bleu(text,hypothesis) > threshold else "NO"
         
 
 def main():
+    # Optimal threshold is 0.24
     threshold_iterator(0.24)
     
 

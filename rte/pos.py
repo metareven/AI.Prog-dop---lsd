@@ -34,8 +34,8 @@ def lemma_matching(threshold, pairs):
             results[id_num] = 1
         else:
             results[id_num] = 0
+    lexical.output_rte(entailments)
     print "Threshold: " + "%.2f"%threshold + " Accuracy: " + str(float(sum(results)) / float(n))
-    #lexical.output_rte(entailments)
 
 def calculate_entailment(text, hypothesis, threshold):
     matching_words = 0

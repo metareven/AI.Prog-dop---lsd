@@ -30,8 +30,8 @@ def word_matching(threshold, pairs):
             results[id_num] = 1
         else:
             results[id_num] = 0
+    output_rte(entailments)
     print "Threshold: " + "%.2f"%threshold + " Accuracy: " + str(float(float(sum(results)) / (float(n))))
-    #output_rte(entailments)
 
 def output_rte(entailments):
     stdout.write("ranked: no" + "\n")
@@ -74,7 +74,8 @@ def calculate_entailment(text,hypothesis,threshold):
 
 # Main method for testing purposes
 def main():
-    threshold_iterator(-1) # Calculates the accuracy for different thresholds if arg is -1, uses the arg as threshold otherwise
+    # Optimal threshold is 0.61
+    threshold_iterator(0.61) # Calculates the accuracy for different thresholds if arg is -1, uses the arg as threshold otherwise
 
 if __name__ == '__main__':
     main()
