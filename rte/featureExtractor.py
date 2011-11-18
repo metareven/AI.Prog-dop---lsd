@@ -34,6 +34,7 @@ class FeatureExtractor():
             self.Domain = orange.Domain([orange.EnumVariable(x) for x in ["words", "lemmas", "POS", "bigrams","entails"]])
             #self.ExampleTable= self.createOrangeTable()
             self.table = self.writeToTable()
+            self.table.close()
 
     def writeToTable(self):
         table = open("table.tab","w")
@@ -52,6 +53,7 @@ class FeatureExtractor():
             string = string + "\t"
         string = string + "class\n"
         n = len(self.features["entails"])
+        #n = 800
         for i in range(n):
             for f in self.features.keys():
                 temp = self.features[f]
@@ -62,8 +64,7 @@ class FeatureExtractor():
             string = string + "\n"
 
         #super hack for removing the \t\n at the end of the string
-        string = string[0:len(string)-4]
-        print string
+        string = string[0:len(string)-2]
         table.write(string)
         return table
 
