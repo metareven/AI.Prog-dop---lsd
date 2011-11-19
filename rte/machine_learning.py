@@ -29,7 +29,9 @@ def main():
     for r in res.results:
         print str(r.classes[0]) + " vs correct: " + str(r.actualClass)
     #res = orngTest.leaveOneOut([learner],FeatureTable)
-    print orngStat.CA(res, orngStat.IS(res))
+    #printresult = orngStat.CA(res, orngStat.IS(res))
+    printresult = orngStat.CA(res)
+    print "Accuracy: " + str(printresult[0])
     #res = orange.evaluation.testing.cross_validation([learner], FeatureTable)
     #print orange.evaluation.scoring.MSE(res)[0]
 
