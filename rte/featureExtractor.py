@@ -22,7 +22,7 @@ def main():
 
 class FeatureExtractor():
 
-    def __init__(self):
+    def __init__(self,createFile=True):
             self.processedPairs = self.readProcessedAttributesFromFile()
             self.pairs = self.readAttributesFromFile()
             self.features = {"words":[], "lemmas":[], "POS":[], "bigrams":[],"entails":[]}
@@ -32,9 +32,10 @@ class FeatureExtractor():
             self.features["bigrams"] = self.calculateBigrams()
             self.features["entails"] = self.calculateClass()
             self.Domain = orange.Domain([orange.EnumVariable(x) for x in ["words", "lemmas", "POS", "bigrams","entails"]])
+            self.size= len(self.features["entails"])
             #self.ExampleTable= self.createOrangeTable()
-            self.table = self.writeToTable()
-            self.table.close()
+            if(createFile):
+                self.writeToTable()
 
     def writeToTable(self):
         table = open("table.tab","w")
@@ -66,7 +67,7 @@ class FeatureExtractor():
         #super hack for removing the \t\n at the end of the string
         string = string[0:len(string)-2]
         table.write(string)
-        return table
+        table.close()
 
 
     def createOrangeTable(self):
@@ -77,7 +78,7 @@ class FeatureExtractor():
                 data.append([])
                 for f in self.features.keys():
                     temp = self.features[f]
-                    temp2 = int(temp[i] * 100)
+                    temp2 = temp[i]
                     data[i].append(temp2)
             return orange.ExampleTable(self.Domain,data)
 
