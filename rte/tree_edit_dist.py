@@ -221,7 +221,7 @@ def distance(t1, t2, costs=unit_costs):
             
         for m in range(l2[j], j+1):
             FD[ None, (l2[j],m) ] = ( FD[ None, (l2[j],m-1) ] + 
-                                      costs(None, T2[m].label) )
+                                      costs(None, T2[m]) )
             
 
         #***************************************************************
