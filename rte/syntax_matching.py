@@ -16,6 +16,7 @@ def threshold_iterator(threshold):
     pairs = xml_util.get_pairs(dom_doc)
     pair_attributes = xml_util.get_attributes_from_preprocessed_pair_nodes(pairs)
     idf_dict = calculate_idf_dictionary(pair_attributes)
+    print len(idf_dict.keys())
     tree_value_pairs = []
     
     # Extracting the actual lemma values from the pair nodes
@@ -117,13 +118,14 @@ def idf_cost(node1, node2, idf_value=idf_dict):
     
 def calculate_idf_dictionary(pair_attributes):
     """ Calculates the idf-dictionary """
+    words = []
+    documents = []
     for i in range(len(pair_attributes)):
         t, h, id_num, e, ta = pair_attributes[i]
         t_lemmas, pos = xml_util.get_lemmas_from_text_node(t)
         h_lemmas, pos = xml_util.get_lemmas_from_text_node(h)
         doc = []
-        words = []
-        documents = []
+        
         for word in t_lemmas:
             words.append(word.lower())
             doc.append(word.lower())
