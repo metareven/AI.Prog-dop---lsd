@@ -10,30 +10,37 @@
 #-------------------------------------------------------------------------------
 #!/usr/bin/env python
 
-import featureExtractor
+import featureExtractor,FeatureExtractor2
 import Orange
 import orange,orngTest,orngStat,orngTree
 
 def main():
-    f = featureExtractor.FeatureExtractor(createFile =False)
-    FeatureTable = orange.ExampleTable("table")
+    phase = 4
+
+    if(phase == 4):
+        f = FeatureExtractor2.FeatureExtractor(createFile =False)
+        FeatureTable = orange.ExampleTable("table2")
+    else:
+        f = featureExtractor.FeatureExtractor(createFile =False)
+        FeatureTable = orange.ExampleTable("table")
     learner,res = CrossValidation(FeatureTable,f.size,10)
-    #learner = orngTree.TreeLearner(FeatureTable)
-    #learner = orange.kNNLearner(FeatureTable, k=10)
-    #res = orngTest.learnAndTestOnLearnData([learner], FeatureTable)
-    #res = orngTest.crossValidation([learner], FeatureTable, folds=10)
     #res = orngTest.testOnData([learner],FeatureTable)
+        #learner = orngTree.TreeLearner(FeatureTable)
+        #learner = orange.kNNLearner(FeatureTable, k=10)
+        #res = orngTest.learnAndTestOnLearnData([learner], FeatureTable)
+        #res = orngTest.crossValidation([learner], FeatureTable, folds=10)
+        #res = orngTest.testOnData([learner],FeatureTable)
 
     print "result length: " + str(len(res.results))
     print "data size: " + str(f.size)
     for r in res.results:
-        print str(r.classes[0]) + " vs correct: " + str(r.actualClass)
-    #res = orngTest.leaveOneOut([learner],FeatureTable)
-    #printresult = orngStat.CA(res, orngStat.IS(res))
+            print str(r.classes[0]) + " vs correct: " + str(r.actualClass)
+        #res = orngTest.leaveOneOut([learner],FeatureTable)
+        #printresult = orngStat.CA(res, orngStat.IS(res))
     printresult = orngStat.CA(res)
     print "Accuracy: " + str(printresult[0])
-    #res = orange.evaluation.testing.cross_validation([learner], FeatureTable)
-    #print orange.evaluation.scoring.MSE(res)[0]
+        #res = orange.evaluation.testing.cross_validation([learner], FeatureTable)
+        #print orange.evaluation.scoring.MSE(res)[0]
 
 def CrossValidation(FeatureTable,n, p):
     """
