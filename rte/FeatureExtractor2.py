@@ -4,7 +4,7 @@
 #
 # Author:      Lars
 #
-# Created:     15.11.2011
+# Created:     20.11.2011
 # Copyright:   (c) Lars 2011
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
@@ -15,34 +15,41 @@ import lemma
 import lexical
 import bleu
 import orange
+import syntax_matching
 
 def main():
     """main method for testing"""
     features = FeatureExtractor()
 
 class FeatureExtractor():
-
+    # lemmas,bigrams,idf gives 0.7125 with cross validation
+    # lemmas alone give 0.6025 with splitting the data in half, but only 0.545 if the training data is switched with the test data
     def __init__(self,createFile=True):
             self.processedPairs = self.readProcessedAttributesFromFile()
             self.pairs = self.readAttributesFromFile()
-            self.features = {"words":[], "lemmas":[], "POS":[], "bigrams":[],"entails":[]}
-            self.features["words"] = self.calculateWordMatch()
+            self.features= {}
+            #self.features = {"words":[], "lemmas":[], "POS":[], "bigrams":[],"entails":[]}
+            #self.features["words"] = self.calculateWordMatch()
             self.features["lemmas"] = self.calculateLemmas()
-            self.features["POS"] = self.calculatePOS()
-            self.features["bigrams"] = self.calculateBigrams()
+            #self.features["POS"] = self.calculatePOS()
+            #self.features["bigrams"] = self.calculateBigrams()
+            #self.features["idf"] = self.calculateIdf()
             self.features["entails"] = self.calculateClass()
             self.Domain = orange.Domain([orange.EnumVariable(x) for x in self.features.keys()])
+            print(self.features.keys())
             self.size= len(self.features["entails"])
             #self.ExampleTable= self.createOrangeTable()
             if(createFile):
                 self.writeToTable()
 
     def writeToTable(self):
-        table = open("table.tab","w")
+        table = open("table2.tab","w")
         string = ""
         #adds the names of the features
         for n in self.features.keys():
-            string = string + n + "\t"
+            if(n != "entails"):
+                string = string + n + "\t"
+        string = string + "entails\t"
         string = string + "\n"
         counter = 0
         for n in range(len(self.features.keys()) -1):
@@ -57,11 +64,13 @@ class FeatureExtractor():
         #n = 800
         for i in range(n):
             for f in self.features.keys():
-                temp = self.features[f]
-                if(temp != None):
-                    string = string + str(temp[i]) + "\t"
-                else:
-                    string = string + "OMG WHAT THE FUCK IS WRONG"
+                if(f != "entails"):
+                    temp = self.features[f]
+                    if(temp != None):
+                        string = string + str(temp[i]) + "\t"
+                    else:
+                        string = string + "OMG WHAT THE FUCK IS WRONG"
+            string = string + str(self.features["entails"][i]) + "\t"
             string = string + "\n"
 
         #super hack for removing the \t\n at the end of the string
@@ -69,6 +78,25 @@ class FeatureExtractor():
         table.write(string)
         table.close()
 
+    def calculateIdf(self):
+        pair_attributes = self.processedPairs[:]
+        idf_dict = syntax_matching.calculate_idf_dictionary(pair_attributes)
+        results = []
+        n = len(pair_attributes)
+        for i in range(n):
+            t,h,id_num,e,ta = pair_attributes[i]
+            id_num = int(id_num)
+            text,pos = xml_util.get_lemmas_from_text_node(t)
+            hypothesis,pos = xml_util.get_lemmas_from_text_node(h)
+            idf_counter = 0.0
+            idf_divider = 0.0
+            for word in hypothesis:
+                if word in text:
+                    idf_counter += (1.0 / float(idf_dict[word.lower()]))
+                idf_divider += (1.0 / float(idf_dict[word.lower()]))
+            idf_word_match = idf_counter / idf_divider
+            results.append(idf_word_match)
+        return results
 
     def createOrangeTable(self):
             """creates an ExampleTable for the orange framework"""

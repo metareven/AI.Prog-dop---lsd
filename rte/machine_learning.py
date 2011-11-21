@@ -18,13 +18,17 @@ def main():
     phase = 4
 
     if(phase == 4):
-        f = FeatureExtractor2.FeatureExtractor(createFile =False)
+        f = FeatureExtractor2.FeatureExtractor(createFile =True)
         FeatureTable = orange.ExampleTable("table2")
+        training,test = SplitDataInHalf(FeatureTable,f.size)
+        learner = orngTree.TreeLearner(training)
+        res = orngTest.testOnData([learner],test)
+        #learner,res = CrossValidation(FeatureTable,f.size,10)
     else:
-        f = featureExtractor.FeatureExtractor(createFile =False)
+        f = featureExtractor.FeatureExtractor(createFile =True)
         FeatureTable = orange.ExampleTable("table")
-    learner,res = CrossValidation(FeatureTable,f.size,10)
-    #res = orngTest.testOnData([learner],FeatureTable)
+        learner,res = CrossValidation(FeatureTable,f.size,10)
+        #res = orngTest.testOnData([learner],FeatureTable)
         #learner = orngTree.TreeLearner(FeatureTable)
         #learner = orange.kNNLearner(FeatureTable, k=10)
         #res = orngTest.learnAndTestOnLearnData([learner], FeatureTable)
@@ -41,6 +45,11 @@ def main():
     print "Accuracy: " + str(printresult[0])
         #res = orange.evaluation.testing.cross_validation([learner], FeatureTable)
         #print orange.evaluation.scoring.MSE(res)[0]
+
+def SplitDataInHalf(FeatureTable,n):
+    data1 = FeatureTable.getItems(range(0,n/2))
+    data2 = FeatureTable.getItems(range(n/2,n))
+    return data1,data2
 
 def CrossValidation(FeatureTable,n, p):
     """
