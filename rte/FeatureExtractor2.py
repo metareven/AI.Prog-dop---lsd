@@ -27,7 +27,7 @@ class FeatureExtractor():
     def __init__(self,createFile=True):
             self.processedPairs = self.readProcessedAttributesFromFile()
             self.pairs = self.readAttributesFromFile()
-            self.testPairs = self.readTestAttributesFromFile()
+            #self.testPairs = self.readTestAttributesFromFile()
             self.features= {}
             #self.features = {"words":[], "lemmas":[], "POS":[], "bigrams":[],"entails":[]}
             #self.features["words"] = self.calculateWordMatch()
