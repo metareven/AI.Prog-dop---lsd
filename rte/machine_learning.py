@@ -20,6 +20,7 @@ def main():
     if(phase == 4):
         f = FeatureExtractor2.FeatureExtractor(createFile =True)
         FeatureTable = orange.ExampleTable("table2")
+        TestTable = orange.ExampleTable("table3")
         training,test = SplitDataInHalf(FeatureTable,f.size)
         learner = orngTree.TreeLearner(training)
         res = orngTest.testOnData([learner],test)

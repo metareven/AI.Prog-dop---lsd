@@ -27,6 +27,7 @@ class FeatureExtractor():
     def __init__(self,createFile=True):
             self.processedPairs = self.readProcessedAttributesFromFile()
             self.pairs = self.readAttributesFromFile()
+            self.testPairs = self.readTestAttributesFromFile()
             self.features= {}
             #self.features = {"words":[], "lemmas":[], "POS":[], "bigrams":[],"entails":[]}
             #self.features["words"] = self.calculateWordMatch()
@@ -40,10 +41,11 @@ class FeatureExtractor():
             self.size= len(self.features["entails"])
             #self.ExampleTable= self.createOrangeTable()
             if(createFile):
-                self.writeToTable()
+                self.writeToTable("table2.tab")
+                self.writeToTable("table3.tab")
 
-    def writeToTable(self):
-        table = open("table2.tab","w")
+    def writeToTable(self, name):
+        table = open(name,"w")
         string = ""
         #adds the names of the features
         for n in self.features.keys():
@@ -122,6 +124,13 @@ class FeatureExtractor():
         pair_nodes = xml_util.get_pair_nodes(document)
         pair_attributes = xml_util.get_attributes_from_pair_nodes(pair_nodes)
         return pair_attributes
+
+    def readTestAttributesFromFile(self):
+            dom_doc = xml_util.get_dom_from_xml("data/RTE2_test.preprocessed.xml")
+            pair_nodes = xml_util.get_pair_nodes(dom_doc)
+            pair_attributes = xml_util.get_attributes_from_preprocessed_pair_nodes(pair_nodes)
+            return pair_attributes
+
 
     def calculateClass(self):
         pair_attributes = self.processedPairs[:]
