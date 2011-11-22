@@ -13,6 +13,9 @@
 from wordnet import *
 from wntools import *
 
+def main():
+    print FindSynonyms("heater","Noun")
+
 def FindSynonyms(word,wordType):
     if wordType == "Noun" and (N.has_key(word)):
             search = N[word]
@@ -36,3 +39,4 @@ def FindSynonyms(word,wordType):
             res.append(temp2)
     return res
 
+main()

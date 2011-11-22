@@ -38,10 +38,32 @@ def main():
 
     print "result length: " + str(len(res.results))
     print "data size: " + str(f.size)
+    guessyes  = 0
+    guessno = 0
+    correctyes = 0
+    correctno = 0
     for r in res.results:
-            print str(r.classes[0]) + " vs correct: " + str(r.actualClass)
+            if str(r.classes[0]) == "1":
+                prtres = "Yes"
+            else:
+                prtres = "No"
+
+            if str(r.actualClass) == "1":
+                prttrue = "Yes"
+                correctyes = correctyes +1
+            else:
+                prttrue = "No"
+                correctno = correctno +1
+            #print str(r.classes[0]) + " vs correct: " + str(r.actualClass)
+            if prtres == "No" and prttrue == "No":
+                guessno = guessno +1
+            elif prtres == "Yes" and prttrue == "Yes":
+                guessyes = guessyes +1
+            print "Guessed " + prtres +" and the correct answer was: " + prttrue
         #res = orngTest.leaveOneOut([learner],FeatureTable)
         #printresult = orngStat.CA(res, orngStat.IS(res))
+    print "Yes Accuracy: " + str(float(guessyes)/float(correctyes))
+    print "No Accuracy: " + str(float(guessno)/float(correctno))
     printresult = orngStat.CA(res)
     print "Accuracy: " + str(printresult[0])
         #res = orange.evaluation.testing.cross_validation([learner], FeatureTable)
