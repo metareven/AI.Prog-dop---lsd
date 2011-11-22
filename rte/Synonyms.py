@@ -18,7 +18,7 @@ def main():
 
 def FindSynonyms(word,wordType):
     if wordType == "Noun" and (N.has_key(word)):
-            search = N[word]
+        search = N[word]
     elif wordType == "Adjective" and (ADJ.has_key(word)):
         search = ADJ[word]
     elif wordType == "Verb" and (V.has_key(word)):
