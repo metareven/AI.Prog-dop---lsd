@@ -25,8 +25,7 @@ class FeatureExtractor():
     # lemmas,bigrams,idf gives 0.7125 with cross validation
     # lemmas alone give 0.6025 with splitting the data in half, but only 0.545 if the training data is switched with the test data
     def __init__(self,createFile=True):
-            self.processedPairs = self.readProcessedAttributesFromFile()
-            self.pairs = self.readAttributesFromFile()
+            self.processedPairs = self.readTestAttributesFromFile()
             self.features= {}
             #self.features = {"words":[], "lemmas":[], "POS":[], "bigrams":[],"entails":[]}
             #self.features["words"] = self.calculateWordMatch()
@@ -41,7 +40,7 @@ class FeatureExtractor():
             self.size= len(self.features["entails"])
             #self.ExampleTable= self.createOrangeTable()
             if(createFile):
-                self.writeToTable("table2.tab")
+                self.writeToTable("table3.tab")
 
     def writeToTable(self, name):
         table = open(name,"w")
@@ -78,36 +77,6 @@ class FeatureExtractor():
         string = string[0:len(string)-2]
         table.write(string)
         table.close()
-
-    def calculatePolarity(self):
-        def helper(text,hypothesis):
-                negatives = ["not", "refuse", "wrong", "deny", "no", "false", "ignore", "cannot", "can't", "never", "unsuccessfully"]
-                text_negatives = 0
-                hypothesis_negatives = 0
-                for word in text:
-                    if word in negatives:
-                        text_negatives += 1
-                for word in hypothesis:
-                    if word in negatives:
-                        hypothesis_negatives += 1
-                if (text_negatives % 2) == (hypothesis_negatives % 2):
-                    return 0
-                else:
-                    return 1
-
-        pair_attributes = self.processedPairs[:]
-        results = []
-        n = len(pair_attributes)
-        for i in range(n):
-            t,h,id_num,e,ta = pair_attributes[i]
-            id_num = int(id_num)
-            text,pos = xml_util.get_lemmas_from_text_node(t)
-            hypothesis,pos = xml_util.get_lemmas_from_text_node(h)
-            results.append(helper(text,hypothesis))
-        return results
-
-
-
 
     def calculateIdf(self):
         pair_attributes = self.processedPairs[:]
@@ -154,6 +123,34 @@ class FeatureExtractor():
         pair_attributes = xml_util.get_attributes_from_pair_nodes(pair_nodes)
         return pair_attributes
 
+    def readTestAttributesFromFile(self):
+            dom_doc = xml_util.get_dom_from_xml("data/RTE2_test.preprocessed.xml")
+            pair_nodes = xml_util.get_pair_nodes(dom_doc)
+
+            entailment_values = [0 for _ in range(800+1)]
+            document = xml_util.get_dom_from_xml("data/RTE2_test.annotated.xml")
+            pair_nodes2 = xml_util.get_pair_nodes(document)
+            pair_attributes = xml_util.get_attributes_from_pair_nodes(pair_nodes2)
+            for i in range(len(pair_attributes)):
+                t,h,id_num,e = pair_attributes[i]
+                id_num = int(id_num)
+                entailment_values[id_num] = e
+
+
+            def get_attributes_from_preprocessed_pair_nodes(pair_nodes):
+                pairs = []
+                for pair in pair_nodes:
+                    text = pair.getElementsByTagName("text")[0].childNodes
+                    hypothesis = pair.getElementsByTagName("hypothesis")[0].childNodes
+                    id_number = pair.getAttributeNode("id").value
+                    #entailment = pair.getAttributeNode("entailment").value
+                    entailment = entailment_values[int(id_number)]
+                    task = pair.getAttributeNode("task").value
+                    pairs.append((text,hypothesis,id_number,entailment,task))
+                return pairs
+
+            pair_attributes = get_attributes_from_preprocessed_pair_nodes(pair_nodes)
+            return pair_attributes
 
 
     def calculateClass(self):
@@ -166,6 +163,33 @@ class FeatureExtractor():
                 results.append(1)
             else:
                 results.append(0)
+        return results
+
+    def calculatePolarity(self):
+        def helper(text,hypothesis):
+                negatives = ["not", "refuse", "wrong", "deny", "no", "false", "ignore", "cannot", "can't", "never", "unsuccessfully"]
+                text_negatives = 0
+                hypothesis_negatives = 0
+                for word in text:
+                    if word in negatives:
+                        text_negatives += 1
+                for word in hypothesis:
+                    if word in negatives:
+                        hypothesis_negatives += 1
+                if (text_negatives % 2) == (hypothesis_negatives % 2):
+                    return 0
+                else:
+                    return 1
+
+        pair_attributes = self.processedPairs[:]
+        results = []
+        n = len(pair_attributes)
+        for i in range(n):
+            t,h,id_num,e,ta = pair_attributes[i]
+            id_num = int(id_num)
+            text,pos = xml_util.get_lemmas_from_text_node(t)
+            hypothesis,pos = xml_util.get_lemmas_from_text_node(h)
+            results.append(helper(text,hypothesis))
         return results
 
     #calculates word match for each pair

@@ -10,7 +10,7 @@
 #-------------------------------------------------------------------------------
 #!/usr/bin/env python
 
-import featureExtractor,FeatureExtractor2
+import featureExtractor,FeatureExtractor2,FeatureExtractor3
 import Orange
 import orange,orngTest,orngStat,orngTree
 
@@ -19,12 +19,15 @@ def main():
 
     if(phase == 4):
         f = FeatureExtractor2.FeatureExtractor(createFile =True)
+        ft = FeatureExtractor3.FeatureExtractor(createFile=True)
         FeatureTable = orange.ExampleTable("table2")
-        #TestTable = orange.ExampleTable("table3")
+        TestTable = orange.ExampleTable("table3")
         training,test = SplitDataInHalf(FeatureTable,f.size)
+        #learner = orngTree.TreeLearner(FeatureTable)
         learner = orngTree.TreeLearner(training)
         res = orngTest.testOnData([learner],test)
         #learner,res = CrossValidation(FeatureTable,f.size,10)
+        #res = orngTest.testOnData([learner],TestTable)
     else:
         f = featureExtractor.FeatureExtractor(createFile =True)
         FeatureTable = orange.ExampleTable("table")
@@ -59,13 +62,14 @@ def main():
                 guessno = guessno +1
             elif prtres == "Yes" and prttrue == "Yes":
                 guessyes = guessyes +1
-            print "Guessed " + prtres +" and the correct answer was: " + prttrue
+            #print "Guessed " + prtres +" and the correct answer was: " + prttrue
         #res = orngTest.leaveOneOut([learner],FeatureTable)
         #printresult = orngStat.CA(res, orngStat.IS(res))
     print "Yes Accuracy: " + str(float(guessyes)/float(correctyes))
     print "No Accuracy: " + str(float(guessno)/float(correctno))
     printresult = orngStat.CA(res)
     print "Accuracy: " + str(printresult[0])
+    #print "myAcc: " + str(float((guessno + guessyes)) / float(len(res.results)))
         #res = orange.evaluation.testing.cross_validation([learner], FeatureTable)
         #print orange.evaluation.scoring.MSE(res)[0]
 
