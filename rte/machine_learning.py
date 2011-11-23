@@ -32,40 +32,41 @@ def main(phase,make):
             res2 = orngTest.testOnData([learner],FeatureTable)
             WriteToFile("dev_tonder_olsen.txt",res2,idlist)
             WriteToFile("test_tonder_olsen.txt",res,idlist2)
+            printresult()
     else:
         f = featureExtractor.FeatureExtractor(createFile =True)
         FeatureTable = orange.ExampleTable("table")
         learner,res = CrossValidation(FeatureTable,f.size,10)
 
-    guessyes  = 0
-    guessno = 0
-    correctyes = 0
-    correctno = 0
-    for r in res.results:
-            if str(r.classes[0]) == "1":
-                prtres = "Yes"
-            else:
-                prtres = "No"
+        guessyes  = 0
+        guessno = 0
+        correctyes = 0
+        correctno = 0
+        for r in res.results:
+                if str(r.classes[0]) == "1":
+                    prtres = "Yes"
+                else:
+                    prtres = "No"
 
-            if str(r.actualClass) == "1":
-                prttrue = "Yes"
-                correctyes = correctyes +1
-            else:
-                prttrue = "No"
-                correctno = correctno +1
-            #print str(r.classes[0]) + " vs correct: " + str(r.actualClass)
-            if prtres == "No" and prttrue == "No":
-                guessno = guessno +1
-            elif prtres == "Yes" and prttrue == "Yes":
-                guessyes = guessyes +1
-            #print "Guessed " + prtres +" and the correct answer was: " + prttrue
-        #res = orngTest.leaveOneOut([learner],FeatureTable)
-        #printresult = orngStat.CA(res, orngStat.IS(res))
-    #print "Yes Accuracy: " + str(float(guessyes)/float(correctyes))
-    #print "No Accuracy: " + str(float(guessno)/float(correctno))
-    printresult = orngStat.CA(res)
-    print "Accuracy: " + str(printresult[0])
-    #print "myAcc: " + str(float((guessno + guessyes)) / float(len(res.results)))
+                if str(r.actualClass) == "1":
+                    prttrue = "Yes"
+                    correctyes = correctyes +1
+                else:
+                    prttrue = "No"
+                    correctno = correctno +1
+                #print str(r.classes[0]) + " vs correct: " + str(r.actualClass)
+                if prtres == "No" and prttrue == "No":
+                    guessno = guessno +1
+                elif prtres == "Yes" and prttrue == "Yes":
+                    guessyes = guessyes +1
+                print "Guessed " + prtres +" and the correct answer was: " + prttrue
+            #res = orngTest.leaveOneOut([learner],FeatureTable)
+            #printresult = orngStat.CA(res, orngStat.IS(res))
+        #print "Yes Accuracy: " + str(float(guessyes)/float(correctyes))
+        #print "No Accuracy: " + str(float(guessno)/float(correctno))
+        printresult = orngStat.CA(res)
+        print "Accuracy: " + str(printresult[0])
+        #print "myAcc: " + str(float((guessno + guessyes)) / float(len(res.results)))
 
 def WriteToFile(name,results,idlist):
     counter = 0
@@ -80,6 +81,19 @@ def WriteToFile(name,results,idlist):
     f = open(name,"w")
     f.write(printstr)
     f.close()
+
+def PrintResults(results,idlist):
+    counter = 0
+    printstr = "ranked: no\n"
+    for r in results.results:
+        if str(r.classes[0]) == "1":
+            answer = "YES"
+        else:
+            answer = "NO"
+        printstr = printstr + str(idlist[counter]) + " " + answer + "\n"
+        counter = counter + 1
+
+    print printstr
 
 
 
@@ -118,4 +132,4 @@ def CrossValidation(FeatureTable,n, p):
     return learner,results
 
 if __name__ == '__main__':
-    main(4,True)
+    main(3,True)

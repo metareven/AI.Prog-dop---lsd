@@ -9,7 +9,7 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 #!/usr/bin/env python
-import bleu,pos,machine_learning,idf_weighting,syntax_matching,lemma,lexical,tree_edit_dist
+import bleu,pos,machine_learning,idf_weighting,syntax_matching,lemma,lexical,tree_edit_dist,syntax_matching
 def main():
     text = ""
     while text.lower() != "exit":
@@ -33,9 +33,11 @@ def main():
         elif text == "lexical":
             lexical.main()
         elif text == "tree distance":
-            tree_edit_dist.main()
+            syntax_matching.main()
         elif text == "idf weighting":
             idf_weighting.main()
+        elif text == "pos":
+            pos.main()
         elif text != "exit":
             print "invalid input: input must be one of the following items:"
             print "one\ntwo\nthree\nfour"

@@ -32,7 +32,7 @@ class FeatureExtractor():
             #self.features = {"words":[], "lemmas":[], "POS":[], "bigrams":[],"entails":[]}
             #self.features["words"] = self.calculateWordMatch()
             #self.features["lemmas"] = self.calculateLemmas()
-            self.features["POS"] = self.calculatePOS()
+            #self.features["POS"] = self.calculatePOS()
             self.features["bigrams"] = self.calculateBigrams()
             self.features["idf"] = self.calculateIdf()
             self.features["pol"] = self.calculatePolarity()
@@ -139,7 +139,7 @@ class FeatureExtractor():
             for i in range(len(pair_attributes)):
                 t,h,id_num,e = pair_attributes[i]
                 id_num = int(id_num)
-                entailment_values[id_num] = e
+                entailment_values[id_num] = 0
 
 
             def get_attributes_from_preprocessed_pair_nodes(pair_nodes):
