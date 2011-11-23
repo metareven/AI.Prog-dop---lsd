@@ -16,6 +16,7 @@ import lexical
 import bleu
 import orange
 import syntax_matching
+import Synonyms
 
 def main():
     """main method for testing"""
@@ -27,15 +28,17 @@ class FeatureExtractor():
     def __init__(self,createFile=True):
             self.processedPairs = self.readTestAttributesFromFile()
             self.features= {}
+            self.IDs= []
             #self.features = {"words":[], "lemmas":[], "POS":[], "bigrams":[],"entails":[]}
             #self.features["words"] = self.calculateWordMatch()
             #self.features["lemmas"] = self.calculateLemmas()
             #self.features["POS"] = self.calculatePOS()
             #self.features["bigrams"] = self.calculateBigrams()
             self.features["idf"] = self.calculateIdf()
-            self.features["pol"] = self.calculatePolarity()
+            #self.features["pol"] = self.calculatePolarity()
             self.features["entails"] = self.calculateClass()
             self.Domain = orange.Domain([orange.EnumVariable(x) for x in self.features.keys()])
+
             #print(self.features.keys())
             self.size= len(self.features["entails"])
             #self.ExampleTable= self.createOrangeTable()
@@ -91,8 +94,10 @@ class FeatureExtractor():
             idf_counter = 0.0
             idf_divider = 0.0
             for word in hypothesis:
-                if word in text:
-                    idf_counter += (1.0 / float(idf_dict[word.lower()]))
+                for w in Synonyms.FindAllSynonyms(word):
+                    if w in text:
+                        idf_counter += (1.0 / float(idf_dict[word.lower()]))
+                        break
                 idf_divider += (1.0 / float(idf_dict[word.lower()]))
             idf_word_match = idf_counter / idf_divider
             results.append(idf_word_match)
@@ -159,6 +164,7 @@ class FeatureExtractor():
         results = []
         for i in range(n):
             t,h,id_num,e,ta = pair_attributes[i]
+            self.IDs.append(id_num)
             if(e == unicode("YES")):
                 results.append(1)
             else:

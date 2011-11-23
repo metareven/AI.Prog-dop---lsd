@@ -14,33 +14,29 @@ import featureExtractor,FeatureExtractor2,FeatureExtractor3
 import Orange
 import orange,orngTest,orngStat,orngTree
 
-def main():
-    phase = 4
+def main(phase):
 
     if(phase == 4):
         f = FeatureExtractor2.FeatureExtractor(createFile =True)
         ft = FeatureExtractor3.FeatureExtractor(createFile=True)
+        idlist = f.IDs
+        idlist2 = ft.IDs
         FeatureTable = orange.ExampleTable("table2")
         TestTable = orange.ExampleTable("table3")
         training,test = SplitDataInHalf(FeatureTable,f.size)
-        #learner = orngTree.TreeLearner(FeatureTable)
         learner = orngTree.TreeLearner(training)
-        res = orngTest.testOnData([learner],test)
+        #learner = orngTree.TreeLearner(training)
+        #res = orngTest.testOnData([learner],test)
         #learner,res = CrossValidation(FeatureTable,f.size,10)
-        #res = orngTest.testOnData([learner],TestTable)
+        res = orngTest.testOnData([learner],test)
+        #WriteToFile("test_tonder_olsen.txt",res,idlist2)
+        res2 = orngTest.testOnData([learner],FeatureTable)
+        #WriteToFile("dev_tonder_olsen.txt",res2,idlist)
     else:
         f = featureExtractor.FeatureExtractor(createFile =True)
         FeatureTable = orange.ExampleTable("table")
         learner,res = CrossValidation(FeatureTable,f.size,10)
-        #res = orngTest.testOnData([learner],FeatureTable)
-        #learner = orngTree.TreeLearner(FeatureTable)
-        #learner = orange.kNNLearner(FeatureTable, k=10)
-        #res = orngTest.learnAndTestOnLearnData([learner], FeatureTable)
-        #res = orngTest.crossValidation([learner], FeatureTable, folds=10)
-        #res = orngTest.testOnData([learner],FeatureTable)
 
-    print "result length: " + str(len(res.results))
-    print "data size: " + str(f.size)
     guessyes  = 0
     guessno = 0
     correctyes = 0
@@ -65,13 +61,27 @@ def main():
             #print "Guessed " + prtres +" and the correct answer was: " + prttrue
         #res = orngTest.leaveOneOut([learner],FeatureTable)
         #printresult = orngStat.CA(res, orngStat.IS(res))
-    print "Yes Accuracy: " + str(float(guessyes)/float(correctyes))
-    print "No Accuracy: " + str(float(guessno)/float(correctno))
+    #print "Yes Accuracy: " + str(float(guessyes)/float(correctyes))
+    #print "No Accuracy: " + str(float(guessno)/float(correctno))
     printresult = orngStat.CA(res)
     print "Accuracy: " + str(printresult[0])
     #print "myAcc: " + str(float((guessno + guessyes)) / float(len(res.results)))
-        #res = orange.evaluation.testing.cross_validation([learner], FeatureTable)
-        #print orange.evaluation.scoring.MSE(res)[0]
+
+def WriteToFile(name,results,idlist):
+    counter = 0
+    printstr = "ranked: no\n"
+    for r in results.results:
+        if str(r.classes[0]) == "1":
+            answer = "YES"
+        else:
+            answer = "NO"
+        printstr = printstr + str(idlist[counter]) + " " + answer + "\n"
+        counter = counter + 1
+    f = open(name,"w")
+    f.write(printstr)
+    f.close()
+
+
 
 def SplitDataInHalf(FeatureTable,n):
     data1 = FeatureTable.getItems(range(0,n/2))
@@ -108,4 +118,4 @@ def CrossValidation(FeatureTable,n, p):
     return learner,results
 
 if __name__ == '__main__':
-    main()
+    main(4)
