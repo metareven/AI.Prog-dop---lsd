@@ -33,10 +33,10 @@ class FeatureExtractor():
             #self.features = {"words":[], "lemmas":[], "POS":[], "bigrams":[],"entails":[]}
             #self.features["words"] = self.calculateWordMatch()
             #self.features["lemmas"] = self.calculateLemmas()
-            #self.features["POS"] = self.calculatePOS()
-            #self.features["bigrams"] = self.calculateBigrams()
+            self.features["POS"] = self.calculatePOS()
+            self.features["bigrams"] = self.calculateBigrams()
             self.features["idf"] = self.calculateIdf()
-            #self.features["pol"] = self.calculatePolarity()
+            self.features["pol"] = self.calculatePolarity()
             self.features["entails"] = self.calculateClass()
             self.Domain = orange.Domain([orange.EnumVariable(x) for x in self.features.keys()])
             #print(self.features.keys())

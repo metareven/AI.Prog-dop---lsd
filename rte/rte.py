@@ -21,9 +21,11 @@ def main():
             #do phase 2
             pass
         elif text == "three":
-            machine_learning.main(3)
+            machine_learning.main(3,False)
         elif text == "four":
-            machine_learning.main(4)
+            machine_learning.main(4,False)
+        elif text == "four make":
+            machine_learning.main(4,True)
         elif text != "exit":
             print "invalid input: input must be one of the following items:"
             print "one\ntwo\nthree\nfour"

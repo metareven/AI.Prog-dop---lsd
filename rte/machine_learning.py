@@ -14,24 +14,24 @@ import featureExtractor,FeatureExtractor2,FeatureExtractor3
 import Orange
 import orange,orngTest,orngStat,orngTree
 
-def main(phase):
+def main(phase,make):
 
     if(phase == 4):
-        f = FeatureExtractor2.FeatureExtractor(createFile =True)
-        ft = FeatureExtractor3.FeatureExtractor(createFile=True)
+        f = FeatureExtractor2.FeatureExtractor(createFile =make)
+        ft = FeatureExtractor3.FeatureExtractor(createFile=make)
         idlist = f.IDs
         idlist2 = ft.IDs
         FeatureTable = orange.ExampleTable("table2")
         TestTable = orange.ExampleTable("table3")
         training,test = SplitDataInHalf(FeatureTable,f.size)
         learner = orngTree.TreeLearner(training)
-        #learner = orngTree.TreeLearner(training)
-        #res = orngTest.testOnData([learner],test)
-        #learner,res = CrossValidation(FeatureTable,f.size,10)
         res = orngTest.testOnData([learner],test)
-        #WriteToFile("test_tonder_olsen.txt",res,idlist2)
-        res2 = orngTest.testOnData([learner],FeatureTable)
-        #WriteToFile("dev_tonder_olsen.txt",res2,idlist)
+        if make == True:
+            learner = orngTree.TreeLearner(FeatureTable)
+            res = orngTest.testOnData([learner],TestTable)
+            res2 = orngTest.testOnData([learner],FeatureTable)
+            WriteToFile("dev_tonder_olsen.txt",res2,idlist)
+            WriteToFile("test_tonder_olsen.txt",res,idlist2)
     else:
         f = featureExtractor.FeatureExtractor(createFile =True)
         FeatureTable = orange.ExampleTable("table")
@@ -118,4 +118,4 @@ def CrossValidation(FeatureTable,n, p):
     return learner,results
 
 if __name__ == '__main__':
-    main(4)
+    main(4,True)
